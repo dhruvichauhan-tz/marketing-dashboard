@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Studio Rundown · Taazaa</title>
+<meta name="description" content="The Taazaa Studio weekly rundown — what each lane shipped, saw, and is stuck on.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23073B3A'/><rect x='22' y='30' width='56' height='9' rx='4' fill='%2329E8AE'/><rect x='22' y='48' width='38' height='9' rx='4' fill='%23ffffff' opacity='.6'/><rect x='22' y='66' width='24' height='9' rx='4' fill='%23ffffff' opacity='.35'/></svg>">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ============ TOKENS ============
+   Taazaa palette, used sparingly:
+   #073B3A carries the type, #29E8AE appears only as a mark.
+   Everything else is paper and hairlines.                       */
+:root{
+  /* paper */
+  --paper:#FFFFFF; --paper-2:#F8FBF9; --paper-3:#F1F6F3;
+  --rule:#E6EDEA; --rule-mid:#D5E1DC; --rule-strong:#B9CBC4;
+  --ink:#07091E; --ink-2:#4F5B62; --ink-3:#8B979C;
+  /* brand */
+  --deep:#073B3A; --deep-2:#0A4E4A; --dark:#07091E; --mint:#29E8AE;
+  --tint:#F1FBF7; --tint-2:#E1F4EC; --tint-rule:#C7E4D9;
+  /* brand band (masthead + footer) */
+  --band:#073B3A; --band-2:#0A4A46; --band-ink:#EDF7F3; --band-ink-2:#9CC3B9; --band-rule:#12534F;
+  /* type accents */
+  --accent:#073B3A; --on-accent:#FFFFFF; --name:#073B3A;
+  --shipped:#0B6E56; --building:#3F5C8C; --blocked:#AF4034;
+  --shipped-mark:#0B6E56; --building-mark:#7E93B5; --blocked-mark:#C86A5F;
+  --shipped-bg:#E4F6EE; --building-bg:#EAEFF8; --blocked-bg:#FBEBE8;
+  --alarm:#C0453A; --quote:#073B3A;
+  --r:3px;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --pad:clamp(20px,5.6vw,76px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#07091E; --paper-2:#0A0E24; --paper-3:#111631;
+    --rule:#1C2138; --rule-mid:#252B45; --rule-strong:#39415F;
+    --ink:#F1F3FA; --ink-2:#A3AABE; --ink-3:#6A7290;
+    --deep:#29E8AE; --deep-2:#29E8AE;
+    --tint:#0A1A22; --tint-2:#0D2429; --tint-rule:#1C4A45;
+    --band:#052A29; --band-2:#073B3A; --band-ink:#EAF6F2; --band-ink-2:#8FB5AC; --band-rule:#0D4642;
+    --accent:#29E8AE; --on-accent:#07091E; --name:#29E8AE;
+    --shipped:#29E8AE; --building:#94A9CE; --blocked:#EC8B80;
+    --shipped-mark:#29E8AE; --building-mark:#7387AB; --blocked-mark:#C4665C;
+    --shipped-bg:#0C2C25; --building-bg:#141A33; --blocked-bg:#2A1512;
+    --alarm:#FF9E90; --quote:#DAF6EC;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#07091E; --paper-2:#0A0E24; --paper-3:#111631;
+  --rule:#1C2138; --rule-mid:#252B45; --rule-strong:#39415F;
+  --ink:#F1F3FA; --ink-2:#A3AABE; --ink-3:#6A7290;
+  --deep:#29E8AE; --deep-2:#29E8AE;
+  --tint:#0A1A22; --tint-2:#0D2429; --tint-rule:#1C4A45;
+  --band:#052A29; --band-2:#073B3A; --band-ink:#EAF6F2; --band-ink-2:#8FB5AC; --band-rule:#0D4642;
+  --accent:#29E8AE; --on-accent:#07091E; --name:#29E8AE;
+  --shipped:#29E8AE; --building:#94A9CE; --blocked:#EC8B80;
+  --shipped-mark:#29E8AE; --building-mark:#7387AB; --blocked-mark:#C4665C;
+  --shipped-bg:#0C2C25; --building-bg:#141A33; --blocked-bg:#2A1512;
+  --alarm:#FF9E90; --quote:#DAF6EC;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;
+     font-weight:400;line-height:1.68;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+     --gutter:max(var(--pad), calc((100% - 1180px)/2 + var(--pad)))}
+h1,h2,h3,h4{margin:0;font-weight:500;letter-spacing:-.025em;text-wrap:balance}
+p{margin:0}
+img,video{max-width:100%;display:block}
+a{color:var(--accent);text-underline-offset:3px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:1.5px solid var(--accent);outline-offset:3px;border-radius:2px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+::selection{background:var(--mint);color:#07091E}
+.lab{font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--deep);opacity:.72}
+
+/* ============ TOP BAR — one hairline, nothing else ============ */
+.bar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+     padding:13px var(--gutter);background:var(--band);color:var(--band-ink);
+     border-bottom:1px solid var(--band-rule)}
+.brand{font-family:var(--sans);font-weight:500;font-size:14.5px;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;white-space:nowrap}
+.brand i{width:6px;height:6px;border-radius:50%;background:var(--mint);flex:none}
+.grow{flex:1}
+.btn{border:1px solid var(--rule-mid);background:transparent;border-radius:var(--r);padding:6px 13px;font-size:13.5px;
+     cursor:pointer;color:var(--ink-2);white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover:not(:disabled){border-color:var(--ink-3);color:var(--ink)}
+/* buttons sitting on a brand band */
+.bar .btn,.stage-top .btn{border-color:var(--band-rule);color:var(--band-ink-2)}
+.bar .btn:hover:not(:disabled),.stage-top .btn:hover:not(:disabled){border-color:var(--mint);color:var(--band-ink)}
+.bar .btn.go,.stage-top .btn.go{background:var(--mint);border-color:var(--mint);color:#04231C}
+.bar .btn.go:hover,.stage-top .btn.go:hover{filter:brightness(1.06)}
+.bar select.pick{border-color:var(--band-rule);color:var(--band-ink-2);background:transparent}
+.bar select.pick option{color:var(--ink);background:var(--paper)}
+.bar .who{color:var(--band-ink-2);border-bottom-color:var(--band-rule)}
+.bar .who:hover{color:var(--mint);border-bottom-color:var(--mint)}
+.bar .live{color:var(--band-ink-2)}
+.bar .live i{background:var(--band-ink-2)}
+.bar .live.on i{background:var(--mint);box-shadow:0 0 0 3px rgba(41,232,174,.18)}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn.go{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:500}
+.btn.go:hover:not(:disabled){filter:brightness(1.12)}
+.btn.sm{padding:3px 8px;font-size:11.5px}
+.btn.plain{border-color:transparent;padding-left:4px;padding-right:4px}
+.btn.plain:hover{border-color:transparent;text-decoration:underline}
+.btn.danger:hover{color:var(--blocked);border-color:var(--blocked)}
+select.pick{background:transparent;border:1px solid var(--rule-mid);border-radius:var(--r);padding:6px 9px;
+            font-size:13px;cursor:pointer;max-width:216px;color:var(--ink-2)}
+.who{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-3);border:0;background:none;
+     cursor:pointer;padding:4px 0;border-bottom:1px dotted var(--rule-strong)}
+.who:hover{color:var(--ink)}
+.live{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+      text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.live i{width:5px;height:5px;border-radius:50%;background:var(--ink-3);flex:none}
+.live.on i{background:var(--mint)}
+.live.warn i{background:var(--blocked)}
+
+/* ============ HERO — air first ============ */
+.wrap{max-width:1180px;margin:0 auto;padding:0 var(--pad)}
+.masthead{background:var(--band);color:var(--band-ink);border-bottom:3px solid var(--mint)}
+.masthead .lab{color:var(--band-ink-2)}
+.masthead{--alarm:#FF9E90}
+.hero{padding:clamp(50px,9vw,116px) 0 clamp(38px,6vw,72px)}
+.hero h1{font-size:clamp(32px,6.2vw,72px);font-weight:400;line-height:1.04;letter-spacing:-.038em;margin:20px 0 0;max-width:20ch}
+.hero h1 b{font-weight:500;color:var(--mint)}
+.hero .sub{margin-top:clamp(22px,3vw,34px);max-width:56ch;color:var(--band-ink-2);font-size:clamp(15.5px,1.5vw,17.5px)}
+.runstrip{display:flex;flex-wrap:wrap;gap:0 26px;margin-top:clamp(30px,4.5vw,50px)}
+.runstrip a{display:inline-flex;align-items:baseline;gap:9px;text-decoration:none;color:var(--band-ink);font-size:15px;
+            padding:6px 0;border-bottom:1px solid transparent}
+.runstrip a:hover{border-bottom-color:var(--mint)}
+.runstrip a b{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--band-ink-2)}
+.runstrip a i{width:6px;height:6px;border-radius:50%;flex:none;align-self:center}
+.hero-stats{display:flex;gap:clamp(26px,5vw,64px);flex-wrap:wrap;margin-top:clamp(38px,5vw,62px);
+            padding-top:clamp(24px,3vw,32px);border-top:1px solid var(--band-rule)}
+.hero-stats div{min-width:74px}
+.hero-stats b{display:block;font-family:var(--mono);font-size:clamp(22px,2.5vw,29px);font-weight:400;
+              letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;color:var(--mint)}
+.hero-stats span{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+                 color:var(--band-ink-2);display:block;margin-top:9px}
+
+/* ============ SPREADS ============ */
+.spread{padding:clamp(52px,9vw,116px) 0;border-top:1px solid var(--rule);scroll-margin-top:64px}
+.mast{display:flex;align-items:baseline;gap:clamp(14px,2.4vw,26px);flex-wrap:wrap;margin-bottom:clamp(30px,4.4vw,52px)}
+.mast .num{font-family:var(--mono);font-size:11px;color:var(--deep);letter-spacing:.08em;flex:none;opacity:.7}
+.mast h2{font-size:clamp(27px,4.4vw,50px);font-weight:400;line-height:1.06;letter-spacing:-.035em;color:var(--name)}
+.mast .meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-left:auto}
+.mast .role{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+.state{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+       text-transform:uppercase;color:var(--ink-3);white-space:nowrap;padding:4px 10px;border-radius:999px;
+       background:var(--paper-3)}
+.state.shipped{background:var(--shipped-bg)}
+.state.building{background:var(--building-bg)}
+.state.blocked{background:var(--blocked-bg)}
+.state i{width:6px;height:6px;border-radius:50%;flex:none}
+.state.shipped i{background:var(--shipped-mark)} .state.shipped{color:var(--shipped)}
+.state.building i{background:var(--building-mark)}
+.state.blocked i{background:var(--blocked-mark)} .state.blocked{color:var(--blocked)}
+
+/* element grid — wide gaps, no boxes */
+.els{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(30px,4vw,58px) clamp(24px,3.2vw,46px)}
+.el{grid-column:span 12;min-width:0}
+@media(min-width:860px){
+  .el[data-span="half"]{grid-column:span 6}
+  .el[data-span="third"]{grid-column:span 4}
+}
+.el h3{font-size:19px;font-weight:500;line-height:1.3;margin-bottom:11px;letter-spacing:-.02em;color:var(--deep)}
+.el .body{color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;max-width:66ch}
+.cap{font-size:14px;color:var(--ink-3);line-height:1.6;margin-top:14px;max-width:70ch}
+.media{background:var(--tint);border:1px solid var(--tint-rule);border-radius:var(--r);overflow:hidden;
+       display:grid;place-items:center;min-height:60px}
+.media img,.media video{width:100%;height:auto;max-height:72vh;object-fit:contain}
+.media.tall img{max-height:86vh;width:auto}
+.embed{position:relative;padding-top:56.25%;background:var(--paper-3);border:1px solid var(--rule);
+       border-radius:var(--r);overflow:hidden}
+.embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.holding{padding:22px;color:var(--ink-3);font-size:14px}
+
+/* insight — a rule and a light large line */
+.el.insight{background:var(--tint);border-left:3px solid var(--mint);border-radius:0 var(--r) var(--r) 0;
+            padding:clamp(24px,3vw,36px) clamp(22px,2.6vw,34px)}
+.el.insight .q{font-size:clamp(19px,2.3vw,27px);font-weight:300;line-height:1.38;letter-spacing:-.022em;
+               color:var(--quote);max-width:34ch}
+.el.insight[data-span="full"] .q{max-width:46ch}
+
+/* blocker & ask — a coloured rule, no box */
+.el.blocker,.el.ask{padding:18px 20px;border-left:3px solid var(--rule-mid);border-radius:0 var(--r) var(--r) 0}
+.el.blocker{border-left-color:var(--blocked-mark);background:var(--blocked-bg)}
+.el.ask{border-left-color:var(--building-mark);background:var(--building-bg)}
+.el.blocker .tagline{color:var(--blocked)} .el.ask .tagline{color:var(--building)}
+.tagline{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:11px}
+.needs{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:14px;letter-spacing:.02em}
+
+/* number */
+.el.metric b{display:block;font-family:var(--mono);font-size:clamp(32px,4.2vw,52px);font-weight:400;
+             letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;color:var(--deep)}
+.el.metric .l{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+              color:var(--ink-3);margin-top:14px}
+.el.metric .note{color:var(--ink-2);font-size:14.5px;margin-top:10px;max-width:34ch}
+
+/* link */
+.el.link a.lk{display:inline-flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink);
+              border-bottom:1px solid var(--rule-mid);padding-bottom:5px}
+.el.link a.lk:hover{border-bottom-color:var(--accent)}
+.el.link .arrow{color:var(--accent);font-family:var(--mono);font-size:13px}
+
+/* storyboard */
+.strip{display:flex;gap:clamp(12px,1.6vw,20px);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
+.strip figure{margin:0;flex:0 0 clamp(190px,25vw,300px);scroll-snap-align:start}
+.grid-frames{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:clamp(14px,2vw,24px)}
+.grid-frames figure{margin:0}
+.strip figure img,.grid-frames figure img{border:1px solid var(--tint-rule);border-radius:var(--r);background:var(--tint)}
+.strip figure .n{font-family:var(--mono);font-size:10px;color:var(--deep);opacity:.65;letter-spacing:.14em;margin-bottom:9px}
+figcaption{font-size:13.5px;color:var(--ink-3);line-height:1.55;margin-top:10px}
+
+/* empty */
+.empty{padding:clamp(40px,7vw,90px) 0;max-width:46ch}
+.empty h3{font-size:21px;font-weight:400;margin-bottom:12px}
+.empty p{color:var(--ink-2);margin-bottom:22px}
+
+/* ============ EDITOR ============ */
+.sheet{position:fixed;inset:0;z-index:200;display:none;background:color-mix(in srgb,var(--ink) 24%,transparent);
+       overflow-y:auto;padding:clamp(0px,3vw,44px)}
+.sheet.open{display:block}
+.sheet-inner{max-width:820px;margin:0 auto;background:var(--paper);border:1px solid var(--rule-mid);border-radius:var(--r)}
+.sheet-hd{position:sticky;top:0;background:var(--tint);border-bottom:1px solid var(--tint-rule);
+          padding:18px clamp(18px,3vw,30px);display:flex;align-items:center;gap:14px;flex-wrap:wrap;z-index:2}
+.sheet-hd h3{font-size:17px;font-weight:500;color:var(--deep)}
+.sheet-bd{padding:clamp(20px,3vw,32px)}
+.fld{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fld>label{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+input[type=text],input[type=url],textarea,select{background:var(--paper);border:0;border-bottom:1px solid var(--rule-mid);
+  border-radius:0;padding:8px 2px;font-size:15px;width:100%;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-bottom-color:var(--accent);outline:0}
+textarea{resize:vertical;min-height:76px;font-family:inherit;line-height:1.6}
+select{cursor:pointer}
+.row{display:grid;gap:clamp(18px,2.4vw,30px);grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.palette{display:flex;flex-wrap:wrap;gap:0 20px;margin:10px 0 30px}
+.palette button{border:0;background:none;padding:7px 0;font-size:14px;cursor:pointer;color:var(--ink-2);
+                display:inline-flex;gap:8px;align-items:center;border-bottom:1px solid transparent}
+.palette button:hover{color:var(--ink);border-bottom-color:var(--accent)}
+.palette button span{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.eled{border-top:1px solid var(--rule);padding:22px 0}
+.eled-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.eled-hd b{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
+.eled-bd{display:flex;flex-direction:column;gap:20px}
+.drop{border:1px dashed var(--rule-strong);border-radius:var(--r);padding:22px;text-align:center;font-size:14px;
+      color:var(--ink-3);cursor:pointer;background:var(--paper-2)}
+.drop:hover,.drop.over{border-color:var(--accent);color:var(--accent)}
+.drop .thumb{margin-top:14px}
+.drop .thumb img,.drop .thumb video{max-height:160px;width:auto;margin:0 auto;border-radius:2px}
+.frames-ed{display:flex;flex-direction:column}
+.frame-ed{display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center;padding:10px 0;
+          border-bottom:1px solid var(--rule)}
+.frame-ed img{width:60px;height:40px;object-fit:cover;border-radius:2px;border:1px solid var(--rule)}
+.hint{font-size:13px;color:var(--ink-3);line-height:1.6}
+.err{color:var(--blocked);font-size:13.5px}
+.ok{color:var(--shipped);font-size:13.5px}
+
+/* ============ PRESENT ============ */
+body.present{overflow:hidden}
+.stage{position:fixed;inset:0;z-index:150;display:none;background:var(--paper);flex-direction:column}
+body.present .stage{display:flex}
+.stage-top{display:flex;align-items:center;gap:18px;padding:16px var(--gutter);background:var(--band);
+           color:var(--band-ink);border-bottom:2px solid var(--mint)}
+.stage-top .keyhint{color:var(--band-ink-2)}
+.rail{display:flex;gap:5px;flex:1;min-width:110px}
+.rail i{height:2px;flex:1;background:var(--band-rule);border-radius:1px}
+.rail i.done{background:var(--band-ink-2)}
+.rail i.now{background:var(--mint)}
+.stage-bd{flex:1;overflow-y:auto;padding:clamp(30px,5vw,72px) var(--gutter)}
+.stage-bd .spread{border-top:0;padding:0;max-width:1180px;margin:0 auto}
+.stage-nav{display:flex;align-items:center;gap:16px;justify-content:center;padding:16px;border-top:1px solid var(--rule);
+           background:var(--paper-2)}
+.keyhint{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.12em}
+
+/* ============ MISC ============ */
+.notice{padding:13px var(--gutter);font-size:13.5px;display:flex;gap:12px;align-items:flex-start;
+        border-bottom:1px solid var(--tint-rule);color:var(--ink-2);background:var(--tint-2)}
+.notice em{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-style:normal;
+           flex:none;padding-top:3px;color:var(--deep)}
+.notice.warn{color:var(--blocked)} .notice.warn em{color:var(--blocked)}
+.notice a,.notice b{color:inherit}
+.foot{background:var(--band);color:var(--band-ink-2);border-top:3px solid var(--mint);margin-top:clamp(40px,6vw,80px)}
+.foot .inner{padding:clamp(34px,5vw,58px) 0 clamp(44px,6vw,74px);font-size:13.5px;line-height:1.8}
+.foot b{color:var(--band-ink);font-weight:500}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media print{.bar,.sheet,.stage,.notice,.runstrip{display:none!important}.spread{page-break-after:always}}
+</style>
+</head>
+<body>
+<!-- ============ TOP BAR ============ -->
+<header class="bar">
+  <div class="brand"><i></i>Studio Rundown</div>
+  <select class="pick" id="edPick" aria-label="Which week"></select>
+  <button class="btn sm plain" id="newEdition" title="Start the next week">New week</button>
+  <span class="grow"></span>
+  <span class="live" id="liveLamp"><i></i><span>Offline</span></span>
+  <button class="who" id="whoBtn" title="Who you are on this board">Set your name</button>
+  <button class="btn" id="presentBtn">Present</button>
+  <button class="btn go" id="mineBtn">My spread</button>
+  <button class="btn sm plain" id="themeBtn" title="Light or dark">Theme</button>
+</header>
+<div id="notices"></div>
+
+<!-- ============ HERO ============ -->
+<section class="masthead">
+<div class="wrap">
+  <div class="hero">
+  <div class="lab" id="heroKick">This week</div>
+  <h1>The week, <b>seven ways.</b></h1>
+  <p class="sub">Every lane gets one spread. Bring a visual — a still, a cut, a board, a screen — and the few
+     sentences that make it mean something. No status theatre.</p>
+  <nav class="runstrip" id="runstrip" aria-label="Running order"></nav>
+    <div class="hero-stats" id="heroStats"></div>
+  </div>
+</div>
+</section>
+
+<!-- ============ THE REEL ============ -->
+<div class="wrap"><main id="reel"></main></div>
+
+<footer class="foot"><div class="wrap"><div class="inner">
+  <div><b>How this works.</b> One spread per person per week. Anyone with the link can post, and everyone sees
+    each other's update the moment it lands.</div>
+  <div style="margin-top:10px" id="footStatus"></div>
+</div></div></footer>
+
+<!-- ============ PRESENT ============ -->
+<div class="stage" id="stage" aria-live="polite">
+  <div class="stage-top">
+    <div class="rail" id="rail"></div>
+    <span class="keyhint" id="stagePos"></span>
+    <button class="btn sm" id="stageExit">Close</button>
+  </div>
+  <div class="stage-bd" id="stageBody"></div>
+  <div class="stage-nav">
+    <button class="btn" id="stagePrev">← Previous</button>
+    <span class="keyhint" id="stageWho"></span>
+    <button class="btn go" id="stageNext">Next →</button>
+  </div>
+</div>
+
+<!-- ============ EDITOR ============ -->
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-inner">
+    <div class="sheet-hd">
+      <h3 id="sheetTitle">Your spread</h3>
+      <span class="grow"></span>
+      <span class="hint" id="sheetMsg"></span>
+      <button class="btn go" id="sheetSave">Save</button>
+      <button class="btn plain" id="sheetClose">Close</button>
+    </div>
+    <div class="sheet-bd">
+      <div class="row" style="margin-bottom:34px">
+        <div class="fld"><label for="edAuthor">Your name</label><select id="edAuthor"></select></div>
+        <div class="fld"><label for="edRole">Lane</label><input type="text" id="edRole" placeholder="Graphics" maxlength="40"></div>
+        <div class="fld"><label for="edMood">Where you are</label><select id="edMood">
+          <option value="shipped">Shipped something</option><option value="building">Building</option><option value="blocked">Blocked</option></select></div>
+      </div>
+      <div class="lab">Add to your spread</div>
+      <div class="palette" id="palette"></div>
+      <div id="elEditors"></div>
+      <p class="hint" id="elEmpty">Nothing here yet. Start with a visual, then say what it shows.</p>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
+   CONFIG — paste your two Supabase values here, then commit.
+   Find them in Supabase → Settings → API.
+   Leave them as-is to run in local demo mode.
+   ============================================================ */
+const CONFIG = {
+  SUPABASE_URL:      "https://rlzpcnnfrgzgqtqzsbaq.supabase.co/rest/v1/",
+  SUPABASE_ANON_KEY: "sb_publishable_ulMZdK0mvpUaoAElhA8R2g_5XXiPSHA"
+};
+/* ========================================================== */
+
+const ROSTER = [
+  ["Brian","Strategic Lead"],["Dhruvi","Account Manager"],["David","Content Lead"],
+  ["Shobhana","Content Writer"],["Shivang","SEO"],["Satyendra","Email & Automation"],
+  ["Raghav","Graphics"],["Sanjana","Video"],["Reet","Social Media"],["Abhinav","Analytics"]
+];
+const KINDS = {
+  image:   {icon:"▣", label:"Image",       span:"full"},
+  video:   {icon:"▶", label:"Video",       span:"full"},
+  board:   {icon:"▦", label:"Storyboard",  span:"full"},
+  text:    {icon:"¶", label:"Words",       span:"half"},
+  insight: {icon:"❝", label:"Insight",     span:"half"},
+  blocker: {icon:"⚑", label:"Blocker",     span:"half"},
+  ask:     {icon:"→", label:"Ask",         span:"half"},
+  metric:  {icon:"#", label:"Number",      span:"third"},
+  link:    {icon:"↗", label:"Link",        span:"half"}
+};
+const MOODS = {shipped:"Shipped", building:"Building", blocked:"Blocked"};
+
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "x"+Math.random().toString(36).slice(2)+Date.now().toString(36));
+const LS = (k,v) => { try { if (v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); } catch(e){ return null; } };
+const mondayOf = d => { const x=new Date(d); const off=(x.getDay()+6)%7; x.setDate(x.getDate()-off);
+  return x.toISOString().slice(0,10); };
+const prettyWeek = iso => { const a=new Date(iso+"T00:00:00"); const b=new Date(a); b.setDate(a.getDate()+6);
+  const f=(d,m)=>d.toLocaleDateString("en-US",m);
+  return f(a,{day:"numeric",month:"short"})+" – "+f(b,{day:"numeric",month:"short",year:"numeric"}); };
+
+/* ============================================================
+   STORE — one interface, two backends
+   ============================================================ */
+let DEMO = !CONFIG.SUPABASE_URL.startsWith("http");
+let sb = null;
+let ME  = LS("rundown.me") || "";   // the name you picked, kept in this browser
+let UID = null;                     // this browser's anonymous user id, from Supabase
+const SIGNED = new Map();
+
+const Demo = {
+  key:"rundown.demo",
+  read(){ try { return JSON.parse(LS(this.key)||"null") || this.seed(); } catch(e){ return this.seed(); } },
+  write(d){ try { LS(this.key, JSON.stringify(d)); } catch(e){ toast("Demo storage is full — connect Supabase to keep going.","warn"); } },
+  seed(){
+    // Placeholders in the Taazaa palette: #29E8AE over #073B3A over #07091E.
+    const sw = (mix,t)=> "data:image/svg+xml,"+encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750"><defs>`+
+      `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">`+
+      `<stop offset="0" stop-color="#073B3A"/><stop offset="1" stop-color="#07091E"/></linearGradient>`+
+      `<radialGradient id="r" cx="${mix}%" cy="18%" r="72%">`+
+      `<stop offset="0" stop-color="#29E8AE" stop-opacity=".42"/><stop offset="1" stop-color="#29E8AE" stop-opacity="0"/></radialGradient>`+
+      `</defs><rect width="1200" height="750" fill="url(#g)"/><rect width="1200" height="750" fill="url(#r)"/>`+
+      `<text x="60" y="640" font-family="DM Sans,Helvetica,sans-serif" font-weight="700" font-size="66" fill="rgba(255,255,255,.94)">${t}</text>`+
+      `<text x="60" y="694" font-family="monospace" font-size="23" fill="#29E8AE" opacity=".62">placeholder — replace with real work</text></svg>`);
+    const w = mondayOf(new Date());
+    const d = { editions:[{id:"ed1", week_start:w, title:"Demo rundown"}], cards:[
+      {id:"c1",edition_id:"ed1",author:"Raghav",role:"Graphics",position:0,mood:"shipped",owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+        {id:uid(),kind:"image",span:"full",src:{d:sw(78,"Whitepaper cover v3")},caption:"Third pass on the $2M cover. Number set in DM Sans at 240pt, teal pulled back to a single rule so the figure carries it."},
+        {id:uid(),kind:"insight",span:"half",body:"The versions that tested best all had one number and nothing else competing with it. Every time we added a second stat, the first one stopped landing."},
+        {id:uid(),kind:"ask",span:"half",body:"Need a decision on whether the cover number stays $2M or moves to $21M before I cut the ad set.",of:"Brian"}]},
+      {id:"c2",edition_id:"ed1",author:"Sanjana",role:"Video",position:1,mood:"building",owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+        {id:uid(),kind:"board",span:"full",layout:"strip",title:"Agentic AI POV — new cold open",frames:[
+          {src:{d:sw(20,"01 · Hook")},caption:"Hard cut to the failure stat. No logo, no title card."},
+          {src:{d:sw(45,"02 · Turn")},caption:"Yasir, mid-sentence. Straight into the claim."},
+          {src:{d:sw(68,"03 · Proof")},caption:"Architecture diagram builds behind him."},
+          {src:{d:sw(90,"04 · Ask")},caption:"One line, one CTA, out."}]},
+        {id:uid(),kind:"text",span:"half",title:"Why I recut it",body:"Retention on the first version fell off a cliff at eleven seconds — right where the title card sat. Cutting the card entirely buys us four more seconds before the first drop."},
+        {id:uid(),kind:"metric",span:"third",value:"0:11",label:"Where we were losing them",note:"First version. New cut holds to 0:15."}]},
+      {id:"c3",edition_id:"ed1",author:"Shivang",role:"SEO",position:2,mood:"blocked",owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+        {id:uid(),kind:"insight",span:"full",body:"Sixty percent of our US search clicks are people typing our own name. Non-brand intent produced seven clicks in four weeks — and Search Console files every one of those brand clicks as “non-branded”."},
+        {id:uid(),kind:"blocker",span:"half",body:"Cannot re-baseline US traffic until internal Ohio traffic and datacenter hits are filtered out of GA4. Right now 39% of what we report as US traffic is us or a robot.",needFrom:"GA4 admin access — Satyendra"},
+        {id:uid(),kind:"metric",span:"third",value:"7",label:"Non-brand US clicks / 28d",note:"The real SEO number."}]}
+    ]};
+    this.write(d); return d;
+  },
+  async editions(){ return this.read().editions.sort((a,b)=>b.week_start.localeCompare(a.week_start)); },
+  async cards(edId){ return this.read().cards.filter(c=>c.edition_id===edId).sort((a,b)=>a.position-b.position); },
+  async addEdition(week){ const d=this.read();
+    if(d.editions.some(e=>e.week_start===week)) return d.editions.find(e=>e.week_start===week);
+    const e={id:uid(),week_start:week,title:null}; d.editions.push(e); this.write(d); return e; },
+  async saveCard(c){ const d=this.read(); const i=d.cards.findIndex(x=>x.id===c.id);
+    c.updated_at=new Date().toISOString(); if(i>=0) d.cards[i]=c; else d.cards.push(c); this.write(d); return c; },
+  async delCard(id){ const d=this.read(); d.cards=d.cards.filter(c=>c.id!==id); this.write(d); },
+  async upload(file){ return { d: await fileToDataUrl(file) }; },
+  async removeFile(){ /* demo files live inside the record itself */ },
+  async claim(){ /* everything is yours in demo mode */ }
+};
+
+const Live = {
+  async editions(){ const {data,error}=await sb.from("editions").select("*").order("week_start",{ascending:false});
+    if(error) throw error; return data; },
+  async cards(edId){ const {data,error}=await sb.from("cards").select("*").eq("edition_id",edId).order("position");
+    if(error) throw error; return data; },
+  async addEdition(week){
+    const {data,error}=await sb.from("editions").upsert({week_start:week},{onConflict:"week_start"}).select().single();
+    if(error) throw error; return data; },
+  async saveCard(c){
+    const row={id:c.id,edition_id:c.edition_id,author:c.author,role:c.role,position:c.position,
+               mood:c.mood,elements:c.elements,owner_id:c.owner_id||UID};
+    const {data,error}=await sb.from("cards").upsert(row).select().single();
+    if(error) throw error; return data; },
+  async delCard(id){ const {error}=await sb.from("cards").delete().eq("id",id); if(error) throw error; },
+  async claim(id){ const {error}=await sb.rpc("claim_card",{card:id}); if(error) throw error; },
+  async upload(file,edId,cardId){
+    const ext=(file.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const path=`${edId||"loose"}/${cardId||"new"}/${uid()}.${ext}`;
+    const {error}=await sb.storage.from("rundown").upload(path,file,{cacheControl:"3600",upsert:false});
+    if(error) throw error; return {p:path}; },
+  async removeFile(path){ const {error}=await sb.storage.from("rundown").remove([path]); if(error) throw error; },
+  async sign(paths){
+    // TEN YEARS. Files stay on the board until somebody deletes them on purpose.
+    const need=paths.filter(p=>!SIGNED.has(p));
+    for(let i=0;i<need.length;i+=90){
+      const batch=need.slice(i,i+90);
+      const {data,error}=await sb.storage.from("rundown").createSignedUrls(batch,315360000);
+      if(error){ console.warn("sign failed",error); continue; }
+      (data||[]).forEach(r=>{ if(r.signedUrl) SIGNED.set(r.path,r.signedUrl); });
+    }
+  }
+};
+let STORE = Demo;
+
+function fileToDataUrl(file){ return new Promise((res,rej)=>{
+  const fr=new FileReader(); fr.onerror=()=>rej(new Error("Could not read that file")); fr.onload=()=>res(fr.result);
+  fr.readAsDataURL(file); }); }
+
+async function shrinkImage(file, maxW=1800, q=0.85){
+  if(!/^image\//.test(file.type) || /gif|svg/.test(file.type)) return file;
+  const url=await fileToDataUrl(file);
+  return new Promise(res=>{ const im=new Image();
+    im.onerror=()=>res(file);
+    im.onload=()=>{ if(im.width<=maxW) return res(file);
+      const cv=document.createElement("canvas"); const s=maxW/im.width;
+      cv.width=maxW; cv.height=Math.round(im.height*s);
+      cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+      cv.toBlob(b=>res(b? new File([b], file.name.replace(/\.\w+$/,"")+".jpg", {type:"image/jpeg"}) : file),"image/jpeg",q); };
+    im.src=url; });
+}
+
+/* ============================================================
+   NOTICES + IDENTITY (no sign-in — you just pick your name)
+   ============================================================ */
+function notice(kind,em,html){
+  const d=document.createElement("div"); d.className="notice"+(kind?" "+kind:"");
+  d.innerHTML=`<em>${em}</em><div>${html}</div>`; $("#notices").appendChild(d); return d;
+}
+function toast(msg,kind){ const n=notice(kind,"Note",esc(msg)); setTimeout(()=>n.remove(),6000); }
+
+function paintWho(){
+  $("#whoBtn").textContent = ME ? ME : "Set your name";
+  $("#whoBtn").title = ME ? `You are ${ME} on this board — click to change` : "Pick your name so the board knows which spread is yours";
+}
+function setMe(name){ ME = name||""; LS("rundown.me", ME); paintWho(); }
+$("#whoBtn").addEventListener("click",()=>{
+  const names = ROSTER.map(([n])=>n);
+  const cur = ME || "";
+  const pick = prompt("Who are you?\n\n"+names.join(" · ")+"\n\nType your first name:", cur);
+  if(pick===null) return;
+  setMe(pick.trim());
+  render();
+});
+
+async function initStore(){
+  if(DEMO){
+    STORE=Demo; UID="demo";
+    notice("", "Demo mode",
+      `Nothing here is shared yet — updates save to this browser only. Open <code>index.html</code>, paste your two
+       Supabase values into <code>CONFIG</code>, and everyone's posts start landing for everyone. Setup is in <b>README.md</b>.`);
+    return true;
+  }
+  sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  STORE = Live;
+
+  // No login screen. Each browser gets a quiet, permanent anonymous
+  // identity, which is what lets a spread belong to the person who made
+  // it. Nobody types anything.
+  let {data:{session}} = await sb.auth.getSession();
+  if(!session){
+    const {data,error} = await sb.auth.signInAnonymously();
+    if(error){
+      notice("warn","Could not start a session",
+        /disabled/i.test(error.message)
+          ? `Anonymous sign-ins are switched off for this Supabase project. Turn on
+             <b>Authentication → Sign In / Providers → Allow anonymous sign-ins</b>, then reload.`
+          : esc(error.message));
+      return false;
+    }
+    session = data.session;
+  }
+  UID = session && session.user ? session.user.id : null;
+  return !!UID;
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let EDITIONS=[], EDITION=null, CARDS=[];
+
+async function load(){
+  EDITIONS = await STORE.editions();
+  if(!EDITIONS.length) EDITIONS=[await STORE.addEdition(mondayOf(new Date()))];
+  const want = LS("rundown.week");
+  EDITION = EDITIONS.find(e=>e.week_start===want) || EDITIONS[0];
+  await loadCards();
+  renderChrome(); await render();
+}
+async function loadCards(){
+  CARDS = await STORE.cards(EDITION.id);
+  if(!DEMO){
+    const paths=[];
+    CARDS.forEach(c=>(c.elements||[]).forEach(el=>{
+      if(el.src&&el.src.p) paths.push(el.src.p);
+      if(el.poster&&el.poster.p) paths.push(el.poster.p);
+      (el.frames||[]).forEach(f=>{ if(f.src&&f.src.p) paths.push(f.src.p); });
+    }));
+    if(paths.length) await Live.sign([...new Set(paths)]);
+  }
+}
+function shortWeek(iso){
+  const full=prettyWeek(iso);
+  return full.endsWith(", "+new Date().getFullYear()) ? full.replace(/, \d{4}$/,"") : full;
+}
+function renderChrome(){
+  $("#edPick").innerHTML = EDITIONS.map(e=>
+    `<option value="${e.week_start}"${e.week_start===EDITION.week_start?" selected":""}>${shortWeek(e.week_start)}${
+      e.week_start===mondayOf(new Date())?" · now":""}</option>`).join("");
+  $("#heroKick").textContent = (EDITION.week_start===mondayOf(new Date())?"This week · ":"") + prettyWeek(EDITION.week_start);
+}
+// Whose spread is this? Enforced in the database by owner_id — you can
+// only change a spread this browser created, or one nobody has claimed.
+// Soft in one direction only: anyone can take an orphaned spread back.
+// The board keeps other
+// people's Edit buttons out of your way. It is a courtesy, not a lock —
+// see the note in README.md about what an open board means.
+function canEdit(c){
+  if(DEMO) return true;
+  if(!c.owner_id) return true;            // nobody has claimed it
+  return c.owner_id === UID;
+}
+function srcOf(o){ if(!o) return ""; if(o.d) return o.d; if(o.p) return SIGNED.get(o.p)||""; return ""; }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const plural=(n,one,many)=>n===1?one:many;
+function moodChip(m){ return `<span class="state ${m}"><i></i>${MOODS[m]||m}</span>`; }
+
+async function render(){
+  const reel=$("#reel");
+  const blocked = CARDS.reduce((n,c)=>n+(c.elements||[]).filter(e=>e.kind==="blocker").length,0)
+                + CARDS.filter(c=>c.mood==="blocked"&&!(c.elements||[]).some(e=>e.kind==="blocker")).length;
+  const asks = CARDS.reduce((n,c)=>n+(c.elements||[]).filter(e=>e.kind==="ask").length,0);
+  const visuals = CARDS.reduce((n,c)=>n+(c.elements||[]).filter(e=>["image","video","board"].includes(e.kind)).length,0);
+  $("#heroStats").innerHTML=[
+    [CARDS.length, plural(CARDS.length,"spread","spreads")+" filed"],
+    [visuals, plural(visuals,"visual","visuals")],
+    [blocked, plural(blocked,"blocker","blockers")+" raised"],
+    [asks, plural(asks,"open ask","open asks")],
+    [CARDS.filter(c=>c.mood==="shipped").length, plural(CARDS.filter(c=>c.mood==="shipped").length,"lane","lanes")+" shipped"]
+  ].map(([v,l])=>`<div><b${/blocker/.test(l)&&blocked?' style="color:var(--alarm)"':""}>${v}</b><span>${esc(l)}</span></div>`).join("");
+
+  $("#runstrip").innerHTML = CARDS.length
+    ? CARDS.map((c,i)=>`<a href="#s${i}"><b>${String(i+1).padStart(2,"0")}</b><i style="background:var(--${c.mood})"></i>${esc(c.author)}</a>`).join("")
+    : `<span class="hint">Nobody has filed yet. Yours can be the first — hit <b>My spread</b>.</span>`;
+
+  if(!CARDS.length){
+    reel.innerHTML=`<div class="spread"><div class="empty">
+      <h3>Empty week</h3>
+      <p>No spreads for ${esc(prettyWeek(EDITION.week_start))} yet. The first one sets the tone — lead with the visual.</p>
+      <button class="btn go" onclick="openEditor()">Start my spread</button></div></div>`;
+    return;
+  }
+  reel.innerHTML = CARDS.map((c,i)=>spreadHtml(c,i)).join("");
+  wireSpreads();
+}
+
+function spreadHtml(c,i,stage){
+  const els=(c.elements||[]);
+  return `<article class="spread" id="${stage?"":"s"+i}" data-mood="${esc(c.mood)}" data-card="${c.id}">
+    <div class="mast">
+      <span class="num">${String(i+1).padStart(2,"0")} / ${String(CARDS.length).padStart(2,"0")}</span>
+      <h2>${esc(c.author)}</h2>
+      <div class="meta">
+          <span class="role">${esc(c.role||"—")}</span>${moodChip(c.mood)}
+          ${els.some(e=>e.kind==="ask")?'<span class="state"><i style="background:var(--building-mark)"></i>Needs a decision</span>':""}
+          ${stage?"":(canEdit(c)
+            ? `<button class="btn sm ghost" data-edit="${c.id}">Edit</button>`
+            : `<button class="btn sm plain" data-claim="${c.id}" title="${esc(c.author)} made this on another browser. Take it over to edit it.">${esc(c.author)}&rsquo;s &mdash; take it over</button>`)}
+      </div>
+    </div>
+    ${els.length?`<div class="els">${els.map(elHtml).join("")}</div>`
+      :`<p class="hint">Spread started but nothing on it yet.</p>`}
+  </article>`;
+}
+
+function elHtml(el){
+  const span=el.span||KINDS[el.kind]?.span||"full";
+  const wrap=inner=>`<div class="el ${el.kind}" data-span="${span}">${inner}</div>`;
+  const cap=t=>t?`<div class="cap">${esc(t)}</div>`:"";
+  const holding=t=>`<div class="media"><div class="holding">${t}</div></div>`;
+  switch(el.kind){
+    case "image":{ const s=srcOf(el.src);
+      return wrap((s?`<div class="media${el.tall?" tall":""}"><img src="${esc(s)}" alt="${esc(el.caption||"Shared visual")}" loading="lazy"></div>`
+        :holding("Image still loading."))+cap(el.caption));}
+    case "video":{
+      if(el.embed){ const em=embedUrl(el.embed);
+        return wrap((em?`<div class="embed"><iframe src="${esc(em)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;picture-in-picture" allowfullscreen title="${esc(el.caption||"Video")}"></iframe></div>`
+          :`<p><a href="${esc(el.embed)}" target="_blank" rel="noopener">Open the video &#8599;</a></p>`)+cap(el.caption));}
+      const s=srcOf(el.src);
+      return wrap((s?`<div class="media"><video src="${esc(s)}" controls preload="metadata"></video></div>`
+        :holding("Video still loading."))+cap(el.caption));}
+    case "board":{
+      const layout=el.layout==="grid"?"grid-frames":"strip";
+      return wrap(`${el.title?`<h3>${esc(el.title)}</h3>`:""}
+        <div class="${layout}">${(el.frames||[]).map((f,n)=>{const s=srcOf(f.src);
+          return `<figure>${layout==="strip"?`<div class="n">${String(n+1).padStart(2,"0")}</div>`:""}
+            ${s?`<img src="${esc(s)}" alt="${esc(f.caption||"Frame "+(n+1))}" loading="lazy">`:""}
+            ${f.caption?`<figcaption>${esc(f.caption)}</figcaption>`:""}</figure>`;}).join("")}</div>
+        ${cap(el.caption)}`);}
+    case "text":
+      return wrap(`${el.title?`<h3>${esc(el.title)}</h3>`:""}<div class="body">${esc(el.body||"")}</div>`);
+    case "insight":
+      return wrap(`<div class="q">${esc(el.body||"")}</div>`);
+    case "blocker":
+      return wrap(`<span class="tagline">Blocked</span><div class="body">${esc(el.body||"")}</div>
+        ${el.needFrom?`<div class="needs">Needs &mdash; ${esc(el.needFrom)}</div>`:""}`);
+    case "ask":
+      return wrap(`<span class="tagline">Asking for a decision</span><div class="body">${esc(el.body||"")}</div>
+        ${el.of?`<div class="needs">From &mdash; ${esc(el.of)}</div>`:""}`);
+    case "metric":
+      return wrap(`<b>${esc(el.value||"—")}</b><div class="l">${esc(el.label||"")}</div>
+        ${el.note?`<div class="note">${esc(el.note)}</div>`:""}`);
+    case "link":
+      return wrap(`<a class="lk" href="${esc(el.url||"#")}" target="_blank" rel="noopener noreferrer">
+        <span>${esc(el.title||el.url||"Link")}</span><span class="arrow">&#8599;</span></a>
+        ${el.note?`<div class="cap">${esc(el.note)}</div>`:""}`);
+    default: return "";
+  }
+}
+function embedUrl(u){
+  try{ const url=new URL(u);
+    const h=url.hostname.replace(/^www\./,"");
+    if(h==="youtu.be") return "https://www.youtube.com/embed"+url.pathname;
+    if(h.endsWith("youtube.com")){ const v=url.searchParams.get("v");
+      if(v) return "https://www.youtube.com/embed/"+v;
+      if(url.pathname.startsWith("/embed/")) return u;
+      if(url.pathname.startsWith("/shorts/")) return "https://www.youtube.com/embed/"+url.pathname.split("/")[2]; }
+    if(h==="vimeo.com") return "https://player.vimeo.com/video"+url.pathname;
+    if(h.endsWith("loom.com")) return u.replace("/share/","/embed/");
+    if(h==="drive.google.com"){ const m=u.match(/\/d\/([^/]+)/); if(m) return `https://drive.google.com/file/d/${m[1]}/preview`; }
+    return null;
+  }catch(e){ return null; }
+}
+function wireSpreads(){
+  $$("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
+  $$("[data-claim]").forEach(b=>b.onclick=async()=>{
+    const c=CARDS.find(x=>x.id===b.dataset.claim);
+    if(!confirm(`Take over ${c.author}'s spread?\n\nDo this if it is yours and you made it on a different browser — clearing your history or switching laptop makes you a new person to the database. If it really is someone else's, ask them to edit it instead.`)) return;
+    b.disabled=true; b.textContent="Taking over…";
+    try{ await STORE.claim(c.id); await loadCards(); await render(); openEditor(c.id); }
+    catch(e){ b.disabled=false; toast("Could not take it over: "+(e.message||e),"warn"); }
+  });
+}
+
+/* ============================================================
+   EDITOR
+   ============================================================ */
+let DRAFT=null;
+
+function openEditor(cardId){
+  const mine = CARDS.find(c=>c.owner_id && c.owner_id===UID)
+            || (ME ? CARDS.find(c=>(c.author||"").toLowerCase()===ME.toLowerCase() && canEdit(c)) : null);
+  const existing = cardId ? CARDS.find(c=>c.id===cardId) : mine;
+  DRAFT = existing
+    ? JSON.parse(JSON.stringify(existing))
+    : {id:uid(), edition_id:EDITION.id, author:guessName(), role:guessRole(), position:CARDS.length,
+       mood:"building", elements:[], owner_id: UID};
+  $("#sheetTitle").textContent = existing && !canEdit(existing)
+    ? "Editing "+existing.author+"'s spread" : "Your spread";
+  $("#edAuthor").innerHTML = ROSTER.map(([n])=>`<option${n===DRAFT.author?" selected":""}>${n}</option>`).join("")
+    + `<option value="__other"${ROSTER.some(([n])=>n===DRAFT.author)?"":" selected"}>Someone else…</option>`;
+  if(!ROSTER.some(([n])=>n===DRAFT.author)) $("#edAuthor").value="__other";
+  $("#edRole").value = DRAFT.role||"";
+  $("#edMood").value = DRAFT.mood||"building";
+  $("#sheetMsg").textContent="";
+  drawEditors();
+  $("#sheet").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function guessName(){
+  if(!ME) return ROSTER[0][0];
+  const hit=ROSTER.find(([n])=>n.toLowerCase()===ME.toLowerCase());
+  return hit?hit[0]:ME;
+}
+function guessRole(){ const n=guessName(); return (ROSTER.find(([a])=>a===n)||[])[1]||""; }
+
+$("#edAuthor").addEventListener("change",e=>{
+  if(!DRAFT) return;
+  if(e.target.value==="__other"){
+    const n=prompt("Name?"); if(n){ DRAFT.author=n.trim();
+      $("#edAuthor").insertAdjacentHTML("afterbegin",`<option selected>${esc(DRAFT.author)}</option>`); }
+  } else { DRAFT.author=e.target.value;
+    const r=(ROSTER.find(([a])=>a===e.target.value)||[])[1];
+    if(r && !$("#edRole").value) $("#edRole").value=r; }
+});
+
+$("#palette").innerHTML = Object.entries(KINDS).map(([k,v])=>
+  `<button data-add="${k}"><span>${v.icon}</span>${v.label}</button>`).join("");
+$("#palette").addEventListener("click",e=>{
+  const b=e.target.closest("[data-add]"); if(!b||!DRAFT) return;
+  const k=b.dataset.add;
+  const el={id:uid(), kind:k, span:KINDS[k].span};
+  if(k==="board"){ el.layout="strip"; el.frames=[]; }
+  DRAFT.elements.push(el); drawEditors();
+  const nodes=$$("#elEditors .eled"); nodes[nodes.length-1]?.scrollIntoView({block:"center"});
+});
+
+function drawEditors(){
+  const host=$("#elEditors"); host.innerHTML="";
+  $("#elEmpty").hidden = DRAFT.elements.length>0;
+  DRAFT.elements.forEach((el,i)=>host.appendChild(editorFor(el,i)));
+}
+function fld(label,node){ const d=document.createElement("div"); d.className="fld";
+  const l=document.createElement("label"); l.textContent=label; d.append(l,node); return d; }
+function inp(val,ph,type){ const i=document.createElement("input"); i.type=type||"text"; i.value=val||""; i.placeholder=ph||""; return i; }
+function ta(val,ph){ const t=document.createElement("textarea"); t.value=val||""; t.placeholder=ph||""; return t; }
+
+function editorFor(el,i){
+  const box=document.createElement("div"); box.className="eled";
+  const hd=document.createElement("div"); hd.className="eled-hd";
+  hd.innerHTML=`<b>${KINDS[el.kind].icon} ${KINDS[el.kind].label}</b><span class="grow"></span>`;
+  const spanSel=document.createElement("select"); spanSel.style.maxWidth="130px";
+  [["full","Full width"],["half","Half"],["third","Third"]].forEach(([v,l])=>{
+    const o=document.createElement("option"); o.value=v; o.textContent=l; if((el.span||"full")===v)o.selected=true; spanSel.append(o);});
+  spanSel.onchange=()=>el.span=spanSel.value;
+  const up=document.createElement("button"); up.className="btn sm ghost"; up.textContent="↑"; up.title="Move up";
+  up.onclick=()=>{ if(i>0){ const a=DRAFT.elements; [a[i-1],a[i]]=[a[i],a[i-1]]; drawEditors(); } };
+  const dn=document.createElement("button"); dn.className="btn sm ghost"; dn.textContent="↓"; dn.title="Move down";
+  dn.onclick=()=>{ const a=DRAFT.elements; if(i<a.length-1){ [a[i+1],a[i]]=[a[i],a[i+1]]; drawEditors(); } };
+  const rm=document.createElement("button"); rm.className="btn sm ghost danger"; rm.textContent="Remove";
+  rm.onclick=()=>{ DRAFT.elements.splice(i,1); drawEditors(); };
+  hd.append(spanSel,up,dn,rm);
+  const bd=document.createElement("div"); bd.className="eled-bd";
+
+  const bind=(node,key)=>{ node.oninput=()=>el[key]=node.value; return node; };
+
+  if(el.kind==="image"){
+    bd.append(mediaDrop(el,"image"));
+    bd.append(fld("Caption — what should someone notice?", bind(ta(el.caption,"Third pass on the cover. The number carries it now."),"caption")));
+  }
+  if(el.kind==="video"){
+    const tabs=document.createElement("div"); tabs.style.display="flex"; tabs.style.gap="8px"; tabs.style.flexWrap="wrap";
+    const bU=document.createElement("button"); bU.className="btn sm"; bU.textContent="Upload a file";
+    const bE=document.createElement("button"); bE.className="btn sm"; bE.textContent="Paste a link";
+    const slot=document.createElement("div");
+    const showUp=()=>{ slot.innerHTML=""; delete el.embed; slot.append(mediaDrop(el,"video"),
+      Object.assign(document.createElement("p"),{className:"hint",
+        textContent:"Up to 50 MB. Anything bigger — most of Sanjana's cuts — belongs on a link."})); };
+    const showEm=()=>{ slot.innerHTML=""; delete el.src;
+      const i2=bind(inp(el.embed,"https://youtu.be/… · Loom · Vimeo · Drive","url"),"embed");
+      slot.append(fld("Video link",i2),
+        Object.assign(document.createElement("p"),{className:"hint",
+          textContent:"YouTube, Vimeo, Loom and Drive play right on the page. Anything else becomes a link card."})); };
+    bU.onclick=showUp; bE.onclick=showEm;
+    tabs.append(bU,bE); bd.append(tabs,slot);
+    (el.embed||!el.src)?showEm():showUp();
+    bd.append(fld("Caption", bind(ta(el.caption,"Retention drops at 0:11 — this cut fixes the cold open."),"caption")));
+  }
+  if(el.kind==="board"){
+    bd.append(fld("Board title", bind(inp(el.title,"Agentic AI POV — new cold open"),"title")));
+    const lay=document.createElement("select");
+    [["strip","Filmstrip — scrolls sideways, reads as a sequence"],["grid","Grid — reads as a set"]].forEach(([v,l])=>{
+      const o=document.createElement("option"); o.value=v; o.textContent=l; if((el.layout||"strip")===v)o.selected=true; lay.append(o);});
+    lay.onchange=()=>el.layout=lay.value;
+    bd.append(fld("Layout",lay));
+    const list=document.createElement("div"); list.className="frames-ed";
+    const redraw=()=>{ list.innerHTML="";
+      (el.frames||[]).forEach((f,n)=>{
+        const r=document.createElement("div"); r.className="frame-ed";
+        const s=srcOf(f.src);
+        r.innerHTML = s?`<img src="${esc(s)}" alt="">`:`<div style="width:64px;height:44px;background:var(--surface-3);border-radius:4px"></div>`;
+        const c=inp(f.caption,"What happens in this frame"); c.oninput=()=>f.caption=c.value;
+        const x=document.createElement("button"); x.className="btn sm ghost danger"; x.textContent="×";
+        x.onclick=()=>{ el.frames.splice(n,1); redraw(); };
+        r.append(c,x); list.append(r); }); };
+    redraw();
+    const add=document.createElement("div"); add.className="drop"; add.tabIndex=0;
+    add.textContent="Click or drop frames here — add several at once, they keep their order";
+    const fi=document.createElement("input"); fi.type="file"; fi.accept="image/*"; fi.multiple=true; fi.className="vh";
+    const take=async files=>{
+      add.textContent="Uploading…";
+      for(const f of [...files]){
+        if(!/^image\//.test(f.type)) continue;
+        try{ const small=await shrinkImage(f,1400,.82);
+          const src=await (DEMO?Demo.upload(small):Live.upload(small,EDITION.id,DRAFT.id));
+          el.frames=el.frames||[]; el.frames.push({src,caption:""});
+        }catch(e){ toast("Frame failed: "+(e.message||e),"warn"); } }
+      add.textContent="Click or drop frames here — add several at once, they keep their order";
+      redraw(); };
+    add.onclick=()=>fi.click(); add.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();fi.click();} };
+    fi.onchange=e=>take(e.target.files);
+    add.ondragover=e=>{e.preventDefault();add.classList.add("over");};
+    add.ondragleave=()=>add.classList.remove("over");
+    add.ondrop=e=>{e.preventDefault();add.classList.remove("over");take(e.dataTransfer.files);};
+    bd.append(list,add,fi);
+    bd.append(fld("Note under the board", bind(ta(el.caption,""),"caption")));
+  }
+  if(el.kind==="text"){
+    bd.append(fld("Heading", bind(inp(el.title,"Why I recut it"),"title")));
+    bd.append(fld("Body", bind(ta(el.body,"What actually happened, with a number where you have one."),"body")));
+  }
+  if(el.kind==="insight"){
+    bd.append(fld("The insight — one strong sentence, set large",
+      bind(ta(el.body,"The versions that tested best all had one number and nothing competing with it."),"body")));
+  }
+  if(el.kind==="blocker"){
+    bd.append(fld("What is blocked", bind(ta(el.body,"Cannot re-baseline US traffic until internal hits are filtered out of GA4."),"body")));
+    bd.append(fld("What you need, and from whom", bind(inp(el.needFrom,"GA4 admin access — Vijay"),"needFrom")));
+  }
+  if(el.kind==="ask"){
+    bd.append(fld("The decision you need", bind(ta(el.body,"Cover number stays $2M, or moves to $21M?"),"body")));
+    bd.append(fld("From whom", bind(inp(el.of,"Brian"),"of")));
+  }
+  if(el.kind==="metric"){
+    bd.append(fld("The number", bind(inp(el.value,"0:11"),"value")));
+    bd.append(fld("What it measures", bind(inp(el.label,"Where we were losing them"),"label")));
+    bd.append(fld("One line of context", bind(inp(el.note,"First version. New cut holds to 0:15."),"note")));
+  }
+  if(el.kind==="link"){
+    bd.append(fld("URL", bind(inp(el.url,"https://","url"),"url")));
+    bd.append(fld("Title", bind(inp(el.title,"Full deck in Drive"),"title")));
+    bd.append(fld("Note", bind(inp(el.note,"Slides 4–9 are the new ones"),"note")));
+  }
+  box.append(hd,bd); return box;
+}
+
+function mediaDrop(el,kind){
+  const wrap=document.createElement("div");
+  const tools=document.createElement("div");
+  tools.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px";
+  const d=document.createElement("div"); d.className="drop"; d.tabIndex=0;
+  const fi=document.createElement("input"); fi.type="file"; fi.className="vh";
+  fi.accept = kind==="video" ? "video/*" : "image/*";
+  const label = kind==="video"
+    ? "Click, or drop a video file here"
+    : "Click, drop, or paste an image here";
+  const paint=()=>{ const s=srcOf(el.src);
+    d.innerHTML = label + (s?`<div class="thumb">${kind==="video"
+      ?`<video src="${esc(s)}" muted></video>`:`<img src="${esc(s)}" alt="Preview">`}</div>`:"");
+    tools.innerHTML="";
+    if(el.src){
+      const swap=document.createElement("button"); swap.className="btn sm ghost";
+      swap.textContent="Replace"; swap.onclick=e=>{e.preventDefault();fi.click();};
+      const del=document.createElement("button"); del.className="btn sm ghost danger";
+      del.textContent="Delete the file permanently";
+      del.onclick=async e=>{ e.preventDefault();
+        if(!confirm("Delete this file from storage for good? This cannot be undone, and it will disappear from every past week that used it."))return;
+        const p=el.src.p;
+        try{ if(p) await STORE.removeFile(p); SIGNED.delete(p); delete el.src; paint();
+          toast("File deleted from storage.");
+        }catch(err){ toast("Could not delete it: "+(err.message||err),"warn"); } };
+      const note=document.createElement("span"); note.className="hint";
+      note.textContent="Removing this block leaves the file in storage.";
+      tools.append(swap,del,note);
+    }
+  };
+  paint();
+  const take=async f=>{
+    if(!f) return;
+    const okType = kind==="video" ? /^video\//.test(f.type) : /^image\//.test(f.type);
+    if(!okType){ d.textContent = kind==="video" ? "That needs to be a video file." : "That needs to be an image file."; return; }
+    if(kind==="video" && f.size>50*1024*1024){ d.textContent="That file is over 50 MB — use a link instead."; return; }
+    d.textContent="Uploading…";
+    try{
+      const file = kind==="image" ? await shrinkImage(f) : f;
+      el.src = await (DEMO?Demo.upload(file):Live.upload(file,EDITION.id,DRAFT.id));
+      paint();
+    }catch(e){ d.textContent="Upload failed: "+(e.message||e); }
+  };
+  d.onclick=()=>fi.click(); d.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();fi.click();} };
+  fi.onchange=e=>take(e.target.files[0]);
+  d.ondragover=e=>{e.preventDefault();d.classList.add("over");};
+  d.ondragleave=()=>d.classList.remove("over");
+  d.ondrop=e=>{e.preventDefault();d.classList.remove("over");take(e.dataTransfer.files[0]);};
+  if(kind==="image") d.addEventListener("paste",e=>{
+    const it=[...(e.clipboardData?.items||[])].find(x=>x.type.startsWith("image/")); if(it) take(it.getAsFile()); });
+  wrap.append(d,tools,fi); return wrap;
+}
+
+$("#sheetSave").addEventListener("click",async()=>{
+  if(!DRAFT) return;
+  DRAFT.author=$("#edAuthor").value==="__other"?DRAFT.author:$("#edAuthor").value;
+  DRAFT.role=$("#edRole").value.trim();
+  DRAFT.mood=$("#edMood").value;
+  if(!DRAFT.owner_id) DRAFT.owner_id=UID;
+  if(!ME) setMe(DRAFT.author);
+  if(!DRAFT.author){ $("#sheetMsg").textContent="Pick a name first."; return; }
+  $("#sheetSave").disabled=true; $("#sheetMsg").textContent="Saving…";
+  try{
+    await STORE.saveCard(DRAFT);
+    await loadCards(); renderChrome(); await render();
+    $("#sheetMsg").textContent="Saved.";
+    setTimeout(closeSheet,450);
+  }catch(e){
+    $("#sheetMsg").innerHTML=`<span class="err">${esc(e.message||String(e))}</span>`;
+  }
+  $("#sheetSave").disabled=false;
+});
+async function closeSheet(){
+  $("#sheet").classList.remove("open"); document.body.style.overflow=""; DRAFT=null;
+  if(INCOMING){ INCOMING=false; await loadCards(); await render(); }
+}
+$("#sheetClose").addEventListener("click",closeSheet);
+$("#sheet").addEventListener("click",e=>{ if(e.target.id==="sheet") closeSheet(); });
+$("#mineBtn").addEventListener("click",()=>openEditor());
+
+/* ============================================================
+   PRESENT MODE
+   ============================================================ */
+let SLIDE=0;
+
+function present(start){
+  if(!CARDS.length){ toast("Nothing to present yet."); return; }
+  SLIDE = Math.max(0, Math.min(CARDS.length-1, start||0));
+  document.body.classList.add("present");
+  drawSlide();
+  $("#stageBody").focus?.();
+}
+function exitPresent(){
+  document.body.classList.remove("present");
+  const t=document.getElementById("s"+SLIDE); if(t) t.scrollIntoView({block:"start"});
+}
+function drawSlide(){
+  const c=CARDS[SLIDE];
+  $("#stageBody").innerHTML=spreadHtml(c,SLIDE,true);
+  $("#stageBody").scrollTop=0;
+  $("#rail").innerHTML=CARDS.map((_,i)=>`<i class="${i<SLIDE?"done":i===SLIDE?"now":""}"></i>`).join("");
+  $("#stageWho").textContent=`${SLIDE+1} of ${CARDS.length} · ${c.author}${SLIDE<CARDS.length-1?"  ·  next: "+CARDS[SLIDE+1].author:"  ·  last one"}`;
+  $("#stagePos").textContent=`${String(SLIDE+1).padStart(2,"0")} / ${String(CARDS.length).padStart(2,"0")}`;
+  $("#stagePrev").disabled=SLIDE===0;
+  $("#stageNext").textContent=SLIDE===CARDS.length-1?"Finish":"Next →";
+}
+function go(n){ const next=SLIDE+n;
+  if(next<0) return;
+  if(next>=CARDS.length){ exitPresent(); return; }
+  SLIDE=next; drawSlide(); }
+$("#presentBtn").addEventListener("click",()=>present(0));
+$("#stageNext").addEventListener("click",()=>go(1));
+$("#stagePrev").addEventListener("click",()=>go(-1));
+$("#stageExit").addEventListener("click",exitPresent);
+addEventListener("keydown",e=>{
+  if($("#sheet").classList.contains("open")){ if(e.key==="Escape") closeSheet(); return; }
+  if(!document.body.classList.contains("present")){
+    if(e.key==="p"&&!e.metaKey&&!e.ctrlKey&&document.activeElement===document.body) present(0);
+    return; }
+  if(e.key==="Escape") exitPresent();
+  else if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){ e.preventDefault(); go(1); }
+  else if(e.key==="ArrowLeft"||e.key==="PageUp"){ e.preventDefault(); go(-1); }
+  else if(e.key==="Home"){ SLIDE=0; drawSlide(); }
+});
+
+/* ============================================================
+   CHROME WIRING
+   ============================================================ */
+$("#themeBtn").addEventListener("click",()=>{
+  const next = document.documentElement.getAttribute("data-theme")==="light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme",next); LS("rundown.theme",next);
+});
+(function(){ const t=LS("rundown.theme"); if(t) document.documentElement.setAttribute("data-theme",t); })();
+
+$("#edPick").addEventListener("change",async e=>{
+  EDITION = EDITIONS.find(x=>x.week_start===e.target.value) || EDITIONS[0];
+  LS("rundown.week", EDITION.week_start);
+  SIGNED.clear();
+  await loadCards(); renderChrome(); await render();
+});
+$("#newEdition").addEventListener("click",async()=>{
+  const latest = EDITIONS[0]?.week_start || mondayOf(new Date());
+  const d=new Date(latest+"T00:00:00"); d.setDate(d.getDate()+7);
+  const week=mondayOf(d);
+  if(!confirm(`Start a new rundown for ${prettyWeek(week)}?`)) return;
+  try{
+    const ed=await STORE.addEdition(week);
+    EDITIONS=await STORE.editions();
+    EDITION=EDITIONS.find(x=>x.week_start===week)||ed;
+    LS("rundown.week",EDITION.week_start); SIGNED.clear();
+    await loadCards(); renderChrome(); await render();
+  }catch(e){ toast("Could not create that week: "+(e.message||e),"warn"); }
+});
+
+/* ============================================================
+   LIVE UPDATES
+   ============================================================ */
+function subscribe(){
+  if(DEMO){ $("#liveLamp").className="live"; $("#liveLamp").querySelector("span").textContent="Demo · this browser"; return; }
+  const ch = sb.channel("rundown")
+    .on("postgres_changes",{event:"*",schema:"public",table:"cards"}, async payload=>{
+      const row = payload.new || payload.old;
+      if(row && row.edition_id && row.edition_id!==EDITION.id) return;
+      if($("#sheet").classList.contains("open")) { flagIncoming(); return; }
+      await loadCards();
+      if(document.body.classList.contains("present")){ drawSlide(); } else { await render(); }
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"editions"}, async()=>{
+      EDITIONS=await STORE.editions(); renderChrome();
+    })
+    .subscribe(status=>{
+      const l=$("#liveLamp");
+      if(status==="SUBSCRIBED"){ l.className="live on"; l.querySelector("span").textContent="Live"; }
+      else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){ l.className="live warn";
+        l.querySelector("span").textContent="Not live — reload"; }
+    });
+  return ch;
+}
+let INCOMING=false;
+function flagIncoming(){
+  if(INCOMING) return; INCOMING=true;
+  $("#sheetMsg").innerHTML='<span class="ok">Someone else just posted — it will appear when you close this.</span>';
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+(async function boot(){
+  try{
+    paintWho();
+    await initStore();
+    await load();
+    subscribe();
+    $("#footStatus").textContent = DEMO
+      ? "Demo mode · nothing is shared · connect Supabase in CONFIG to go live"
+      : "Live · no sign-in · files stay until somebody deletes them on purpose";
+  }catch(e){
+    console.error(e);
+    notice("warn","Could not load",
+      esc(e.message||String(e))+" — if this is the first run, check that <code>supabase-setup.sql</code> ran without errors.");
+  }
+})();
+</script>
+</body>
+</html>
