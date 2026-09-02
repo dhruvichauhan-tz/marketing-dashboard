@@ -374,8 +374,8 @@ body.present .stage{display:flex}
    Leave them as-is to run in local demo mode.
    ============================================================ */
 const CONFIG = {
-  SUPABASE_URL:      "https://rlzpcnnfrgzgqtqzsbaq.supabase.co/rest/v1/",
-  SUPABASE_ANON_KEY: "sb_publishable_ulMZdK0mvpUaoAElhA8R2g_5XXiPSHA"
+  SUPABASE_URL:      "https://rlzpcnnfrgzgqtqzsbaq.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsenBjbm5mcmd6Z3F0cXpzYmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNDMwNTMsImV4cCI6MjEwMzkxOTA1M30.RGYhXsScCnC_2qSoJloyTWLGJkJbOSHbmph-PeqMOF8"
 };
 /* ========================================================== */
 
@@ -548,7 +548,29 @@ async function initStore(){
        Supabase values into <code>CONFIG</code>, and everyone's posts start landing for everyone. Setup is in <b>README.md</b>.`);
     return true;
   }
-  sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  if(!window.supabase || !window.supabase.createClient){
+    notice("warn","Supabase library did not load",
+      `The page could not fetch <code>supabase-js</code> from the CDN. Usually that is a network or
+       ad-blocker issue — reload, or try a different network. Nothing is wrong with your database.`);
+    return false;
+  }
+
+  // Be forgiving about what was pasted. Supabase's dashboard shows several
+  // URLs and it is easy to grab the REST one; the client needs the bare
+  // project origin and appends /rest/v1 itself. Strip any path off the end.
+  const base = CONFIG.SUPABASE_URL.trim()
+    .replace(/\/+$/, "")
+    .replace(/\/(rest|auth|storage|realtime|functions)\/v\d.*$/i, "");
+
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/i.test(base)){
+    notice("warn","Check the project URL",
+      `<code>${esc(CONFIG.SUPABASE_URL)}</code> does not look like a Supabase project URL.
+       It should be just <code>https://your-ref.supabase.co</code> — no path on the end.
+       Copy it from <b>Settings → API → Project URL</b>.`);
+    return false;
+  }
+
+  sb = window.supabase.createClient(base, CONFIG.SUPABASE_ANON_KEY);
   STORE = Live;
 
   // No login screen. Each browser gets a quiet, permanent anonymous
@@ -558,11 +580,18 @@ async function initStore(){
   if(!session){
     const {data,error} = await sb.auth.signInAnonymously();
     if(error){
+      const m = error.message || "";
       notice("warn","Could not start a session",
-        /disabled/i.test(error.message)
-          ? `Anonymous sign-ins are switched off for this Supabase project. Turn on
+        /disabled|not enabled/i.test(m)
+          ? `Anonymous sign-ins are switched off for this project. Turn on
              <b>Authentication → Sign In / Providers → Allow anonymous sign-ins</b>, then reload.`
-          : esc(error.message));
+        : /rate|too many/i.test(m)
+          ? `Too many sign-ins from this network in the last hour. Raise
+             <b>Authentication → Rate Limits → Anonymous sign-ins</b>, or wait a few minutes.`
+        : /invalid|api key|jwt/i.test(m)
+          ? `That API key was rejected. Copy the <b>anon public</b> key from
+             <b>Settings → API</b> — not the service_role key.`
+          : esc(m));
       return false;
     }
     session = data.session;
@@ -1104,7 +1133,8 @@ function flagIncoming(){
 (async function boot(){
   try{
     paintWho();
-    await initStore();
+    const ready = await initStore();
+    if(!ready) return;          // initStore has already said what is wrong
     await load();
     subscribe();
     $("#footStatus").textContent = DEMO
