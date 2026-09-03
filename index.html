@@ -185,20 +185,15 @@ select.pick{background:var(--surface);border:1px solid var(--line);border-radius
          letter-spacing:-.042em;padding-bottom:.05em}
 .mast .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
 .mast .role{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.spread[data-mood="completed"] .mast h2{background:linear-gradient(180deg,var(--ink) 60%,var(--shipped));
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-/* a blocker is a fact about the work, so it outranks whatever state was picked */
+/* a blocker is the one thing that recolours a name */
 .spread[data-blocked="1"] .mast h2{background:linear-gradient(180deg,var(--ink) 60%,var(--blocked));
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 
-/* status pill (JS emits .state.<mood>) */
+/* flag pills — a blocker or an open ask on the card */
 .state{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;
        text-transform:uppercase;font-weight:500;padding:4px 11px;border-radius:999px;white-space:nowrap;
        background:var(--surface-3);color:var(--ink-3)}
 .state i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
-.state.completed{background:var(--shipped-bg);color:var(--shipped)}
-.state.building{background:var(--building-bg);color:var(--building)}
-.state.planning{background:var(--surface-3);color:var(--ink-2)}
 .state.blocked{background:var(--blocked-bg);color:var(--blocked)}
 .state.asking{background:var(--building-bg);color:var(--building)}
 
@@ -337,6 +332,26 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
 .frame-ed{display:grid;grid-template-columns:72px 1fr auto;gap:11px;align-items:center;background:var(--surface);
           border:1px solid var(--line-soft);border-radius:8px;padding:8px}
 .frame-ed img{width:72px;height:48px;object-fit:cover;border-radius:5px;background:#05070F}
+/* Deleting a card is available, not advertised. */
+.cardactions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;padding-top:15px;
+             border-top:1px solid var(--line)}
+.btn.quiet-danger{color:var(--ink-3)}
+.btn.quiet-danger:hover:not(:disabled){color:var(--blocked);border-color:color-mix(in srgb,var(--blocked) 45%,var(--line))}
+.btn.danger{color:var(--blocked);border-color:color-mix(in srgb,var(--blocked) 45%,var(--line));background:transparent}
+.btn.danger:hover:not(:disabled){background:var(--blocked);border-color:var(--blocked);color:var(--surface)}
+
+/* in-page confirm, since browsers can suppress native dialogs */
+.twostep{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;background:var(--surface-3);
+         border:1px solid color-mix(in srgb,var(--blocked) 34%,var(--line));border-radius:9px;padding:7px 9px}
+.twostep .q{font-size:12.5px;color:var(--ink-2);max-width:46ch}
+
+/* running order */
+.orderlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.orderlist li{display:flex;align-items:center;gap:11px;background:var(--surface-2);border:1px solid var(--line);
+              border-radius:9px;padding:10px 12px}
+.orderlist .on{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.orderlist .oname{font-family:var(--disp);font-weight:700;font-size:15.5px;letter-spacing:-.02em}
+.orderlist .role{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
 .err{color:var(--blocked);font-size:13px}
 .ok{color:var(--shipped);font-size:13px}
 </style>
@@ -349,6 +364,7 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
   <button class="btn sm plain" id="newEdition" title="Start the next week">New week</button>
   <span class="grow"></span>
   <span class="live" id="liveLamp"><i></i><span>Offline</span></span>
+  <button class="btn" id="orderBtn" title="Set who presents in what order">Order</button>
   <button class="btn" id="presentBtn">Present</button>
   <button class="btn go" id="mineBtn">My Card</button>
   <button class="btn sm plain" id="themeBtn">Auto</button>
@@ -393,6 +409,23 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
   </div>
 </div>
 
+<!-- ============ RUNNING ORDER ============ -->
+<div class="sheet" id="orderSheet" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
+  <div class="sheet-inner" style="max-width:560px">
+    <div class="sheet-hd">
+      <h3 id="orderTitle">Running order</h3>
+      <span class="grow"></span>
+      <span class="hint" id="orderMsg"></span>
+      <button class="btn" id="orderClose">Done</button>
+    </div>
+    <div class="sheet-bd">
+      <p class="hint" style="margin-bottom:14px">The order everyone presents in. Moves save straight away, and
+         everyone else&rsquo;s board reorders too.</p>
+      <ol class="orderlist" id="orderList"></ol>
+    </div>
+  </div>
+</div>
+
 <!-- ============ EDITOR ============ -->
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
   <div class="sheet-inner">
@@ -407,12 +440,11 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
       <div class="row" style="margin-bottom:34px">
         <div class="fld"><label for="edAuthor">Your name</label><select id="edAuthor"></select></div>
         <div class="fld"><label for="edRole">Lane</label><input type="text" id="edRole" placeholder="Graphics" maxlength="40"></div>
-        <div class="fld"><label for="edMood">Where you are</label><select id="edMood">
-          <option value="completed">Completed</option><option value="building" selected>Building</option><option value="planning">Planning</option></select></div>
       </div>
       <div class="lab">Add to your card</div>
       <div class="palette" id="palette"></div>
       <div id="elEditors"></div>
+      <div id="dangerZone"></div>
       <p class="hint" id="elEmpty">Nothing here yet. Start with a visual, then say what it shows.</p>
     </div>
   </div>
@@ -446,10 +478,6 @@ const KINDS = {
   metric:  {icon:"#", label:"Number",      span:"third"},
   link:    {icon:"↗", label:"Link",        span:"half"}
 };
-const MOODS = {completed:"Completed", building:"Building", planning:"Planning"};
-// Cards written before the states were renamed still render correctly.
-const MOOD_ALIAS = {shipped:"completed", blocked:"building"};
-const normMood = m => MOOD_ALIAS[m] || (MOODS[m] ? m : "building");
 
 const $  = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -488,11 +516,11 @@ const Demo = {
       `<text x="60" y="694" font-family="monospace" font-size="23" fill="#29E8AE" opacity=".62">placeholder — replace with real work</text></svg>`);
     const w = mondayOf(new Date());
     const d = { editions:[{id:"ed1", week_start:w, title:"Demo rundown"}], cards:[
-      {id:"c1",edition_id:"ed1",author:"Raghav",role:"Graphics",position:0,mood:"completed",owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+      {id:"c1",edition_id:"ed1",author:"Raghav",role:"Graphics",position:0,owner_id:"demo",updated_at:new Date().toISOString(),elements:[
         {id:uid(),kind:"image",span:"full",src:{d:sw(78,"Whitepaper cover v3")},caption:"Third pass on the $2M cover. Number set in DM Sans at 240pt, teal pulled back to a single rule so the figure carries it."},
         {id:uid(),kind:"insight",span:"half",body:"The versions that tested best all had one number and nothing else competing with it. Every time we added a second stat, the first one stopped landing."},
         {id:uid(),kind:"ask",span:"half",body:"Need a decision on whether the cover number stays $2M or moves to $21M before I cut the ad set.",of:"Brian"}]},
-      {id:"c2",edition_id:"ed1",author:"Sanjana",role:"Video",position:1,mood:"building",owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+      {id:"c2",edition_id:"ed1",author:"Sanjana",role:"Video",position:1,owner_id:"demo",updated_at:new Date().toISOString(),elements:[
         {id:uid(),kind:"board",span:"full",layout:"strip",title:"Agentic AI POV — new cold open",frames:[
           {src:{d:sw(20,"01 · Hook")},caption:"Hard cut to the failure stat. No logo, no title card."},
           {src:{d:sw(45,"02 · Turn")},caption:"Yasir, mid-sentence. Straight into the claim."},
@@ -500,7 +528,7 @@ const Demo = {
           {src:{d:sw(90,"04 · Ask")},caption:"One line, one CTA, out."}]},
         {id:uid(),kind:"text",span:"half",title:"Why I recut it",body:"Retention on the first version fell off a cliff at eleven seconds — right where the title card sat. Cutting the card entirely buys us four more seconds before the first drop."},
         {id:uid(),kind:"metric",span:"third",value:"0:11",label:"Where we were losing them",note:"First version. New cut holds to 0:15."}]},
-      {id:"c3",edition_id:"ed1",author:"Shivang",role:"SEO",position:2,mood:"building",owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+      {id:"c3",edition_id:"ed1",author:"Shivang",role:"SEO",position:2,owner_id:"demo",updated_at:new Date().toISOString(),elements:[
         {id:uid(),kind:"insight",span:"full",body:"Sixty percent of our US search clicks are people typing our own name. Non-brand intent produced seven clicks in four weeks — and Search Console files every one of those brand clicks as “non-branded”."},
         {id:uid(),kind:"blocker",span:"half",body:"Cannot re-baseline US traffic until internal Ohio traffic and datacenter hits are filtered out of GA4. Right now 39% of what we report as US traffic is us or a robot.",needFrom:"GA4 admin access — Satyendra"},
         {id:uid(),kind:"metric",span:"third",value:"7",label:"Non-brand US clicks / 28d",note:"The real SEO number."}]}
@@ -517,7 +545,11 @@ const Demo = {
   async delCard(id){ const d=this.read(); d.cards=d.cards.filter(c=>c.id!==id); this.write(d); },
   async upload(file){ return { d: await fileToDataUrl(file) }; },
   async removeFile(){ /* demo files live inside the record itself */ },
-  async claim(){ /* everything is yours in demo mode */ }
+  async claim(){ /* everything is yours in demo mode */ },
+  async setOrder(edId,ids){
+    const d=this.read();
+    ids.forEach((id,i)=>{ const c=d.cards.find(x=>x.id===id); if(c) c.position=i; });
+    this.write(d); }
 };
 
 const Live = {
@@ -529,12 +561,30 @@ const Live = {
     const {data,error}=await sb.from("editions").upsert({week_start:week},{onConflict:"week_start"}).select().single();
     if(error) throw error; return data; },
   async saveCard(c){
+    // `mood` is no longer part of the product — a card holds a mix of
+    // finished and half-formed work, so one state per card was a lie.
+    // The column keeps its database default; we simply stop writing it.
     const row={id:c.id,edition_id:c.edition_id,author:c.author,role:c.role,position:c.position,
-               mood:c.mood,elements:c.elements,owner_id:c.owner_id||UID};
+               elements:c.elements,owner_id:c.owner_id||UID};
     const {data,error}=await sb.from("cards").upsert(row).select().single();
     if(error) throw error; return data; },
-  async delCard(id){ const {error}=await sb.from("cards").delete().eq("id",id); if(error) throw error; },
+  async delCard(id,edId){
+    // Take the uploads with it. Leaving them behind is how storage fills up
+    // with files nothing references.
+    try{
+      const {data:files}=await sb.storage.from("rundown").list(`${edId}/${id}`,{limit:1000});
+      const paths=(files||[]).filter(f=>f.id!==null).map(f=>`${edId}/${id}/${f.name}`);
+      for(let i=0;i<paths.length;i+=100){
+        await sb.storage.from("rundown").remove(paths.slice(i,i+100));
+      }
+      paths.forEach(p=>SIGNED.delete(p));
+    }catch(e){ /* the Monday sweep reclaims anything missed */ }
+    const {error}=await sb.from("cards").delete().eq("id",id);
+    if(error) throw error; },
   async claim(id){ const {error}=await sb.rpc("claim_card",{card:id}); if(error) throw error; },
+  async setOrder(edId,ids){
+    const {error}=await sb.rpc("set_card_order",{p_edition:edId,p_ids:ids});
+    if(error) throw error; },
   async upload(file,edId,cardId){
     const ext=(file.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"");
     const path=`${edId||"loose"}/${cardId||"new"}/${uid()}.${ext}`;
@@ -581,6 +631,27 @@ async function shrinkImage(file, maxW=1800, q=0.85){
 function notice(kind,em,html){
   const d=document.createElement("div"); d.className="notice"+(kind?" "+kind:"");
   d.innerHTML=`<em>${em}</em><div>${html}</div>`; $("#notices").appendChild(d); return d;
+}
+/* Native confirm() is unreliable: once a browser has been told to block
+   dialogs for a page, every confirm() silently returns false and the click
+   appears to do nothing. So destructive actions confirm in the page. */
+function twoStep(btn,question,onYes,opts){
+  const o=opts||{};
+  const host=document.createElement("span");
+  host.className="twostep";
+  host.innerHTML=`<span class="q">${esc(question)}</span>
+    <button class="btn sm go">${esc(o.yes||"Delete")}</button>
+    <button class="btn sm plain">Cancel</button>`;
+  const [yes,no]=host.querySelectorAll("button");
+  const restore=()=>{ if(host.parentNode) host.replaceWith(btn); };
+  yes.onclick=async()=>{
+    yes.disabled=true; no.disabled=true; yes.textContent=o.busy||"Deleting…";
+    try{ await onYes(); }
+    catch(e){ restore(); if(o.onError) o.onError(e); }
+  };
+  no.onclick=restore;
+  btn.replaceWith(host);
+  yes.focus();
 }
 function toast(msg,kind){ const n=notice(kind,"Note",esc(msg)); setTimeout(()=>n.remove(),6000); }
 
@@ -700,7 +771,6 @@ function srcOf(o){ if(!o) return ""; if(o.d) return o.d; if(o.p) return SIGNED.g
    RENDER
    ============================================================ */
 const plural=(n,one,many)=>n===1?one:many;
-function moodChip(m){ const k=normMood(m); return `<span class="state ${k}"><i></i>${MOODS[k]}</span>`; }
 const hasKind=(c,k)=>(c.elements||[]).some(e=>e.kind===k);
 
 async function render(){
@@ -710,7 +780,6 @@ async function render(){
   const blockers = CARDS.reduce((n,c)=>n+(c.elements||[]).filter(e=>e.kind==="blocker").length,0);
   const asks     = CARDS.reduce((n,c)=>n+(c.elements||[]).filter(e=>e.kind==="ask").length,0);
   const visuals  = CARDS.reduce((n,c)=>n+(c.elements||[]).filter(e=>["image","video","board"].includes(e.kind)).length,0);
-  const done     = CARDS.filter(c=>normMood(c.mood)==="completed").length;
 
   const stat=(v,label,key,tone)=>{
     const live = key && v>0;
@@ -723,8 +792,7 @@ async function render(){
     stat(CARDS.length, plural(CARDS.length,"card","cards")+" filed"),
     stat(visuals, plural(visuals,"visual","visuals")),
     stat(blockers, plural(blockers,"blocker","blockers")+" raised","blocker","blocked"),
-    stat(asks, plural(asks,"open ask","open asks"),"ask","building"),
-    stat(done, plural(done,"lane","lanes")+" completed")
+    stat(asks, plural(asks,"open ask","open asks"),"ask","building")
   ].join("");
   $$("#heroStats [data-filter]").forEach(el=>{
     const go=()=>setFilter(FILTER===el.dataset.filter?"all":el.dataset.filter);
@@ -759,7 +827,7 @@ async function render(){
 
   $("#runstrip").innerHTML = VIEW.length
     ? VIEW.map((c,i)=>`<a href="#s${i}"><span class="n">${String(i+1).padStart(2,"0")}</span>
-        <i style="background:var(--${hasKind(c,"blocker")?"blocked":normMood(c.mood)==="completed"?"shipped":"building"})"></i>${esc(c.author)}</a>`).join("")
+        <i style="background:var(--${hasKind(c,"blocker")?"blocked":hasKind(c,"ask")?"building":"shipped"})"></i>${esc(c.author)}</a>`).join("")
     : `<span class="hint" style="opacity:.8">Nobody has filed yet. Yours can be the first — hit <b>My Card</b>.</span>`;
 
   if(!VIEW.length){
@@ -812,13 +880,13 @@ async function setFilter(f){
 function spreadHtml(c,i,stage){
   const els=(c.elements||[]);
   const blocked=hasKind(c,"blocker"), asking=hasKind(c,"ask");
-  return `<article class="spread" id="${stage?"":"s"+i}" data-mood="${esc(normMood(c.mood))}"
+  return `<article class="spread" id="${stage?"":"s"+i}"
            data-blocked="${blocked?"1":"0"}" data-card="${c.id}">
     <div class="mast">
       <span class="num">${String(i+1).padStart(2,"0")} / ${String(VIEW.length).padStart(2,"0")}</span>
       <h2>${esc(c.author)}</h2>
       <div class="meta">
-          <span class="role">${esc(c.role||"—")}</span>${moodChip(c.mood)}
+          <span class="role">${esc(c.role||"—")}</span>
           ${blocked?'<span class="state blocked"><i></i>Has a blocker</span>':""}
           ${asking?'<span class="state asking"><i></i>Needs a decision</span>':""}
           ${stage?"":(canEdit(c)
@@ -901,12 +969,12 @@ function wireSpreads(){
     if(t) t.scrollIntoView({block:"start"});
   });
   $$("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
-  $$("[data-claim]").forEach(b=>b.onclick=async()=>{
+  $$("[data-claim]").forEach(b=>b.onclick=()=>{
     const c=CARDS.find(x=>x.id===b.dataset.claim);
-    if(!confirm(`Take over ${c.author}'s card?\n\nDo this if it is yours and you made it on a different browser — clearing your history or switching laptop makes you a new person to the database. If it really is someone else's, ask them to edit it instead.`)) return;
-    b.disabled=true; b.textContent="Taking over…";
-    try{ await STORE.claim(c.id); await loadCards(); await render(); openEditor(c.id); }
-    catch(e){ b.disabled=false; toast("Could not take it over: "+(e.message||e),"warn"); }
+    twoStep(b,`Take over ${c.author}'s card? Do this if it is yours and you made it on another browser.`,
+      async()=>{ await STORE.claim(c.id); await loadCards(); await render(); openEditor(c.id); },
+      {yes:"Take it over",busy:"Taking over…",
+       onError:e=>toast("Could not take it over: "+(e.message||e),"warn")});
   });
 }
 
@@ -922,28 +990,36 @@ function openEditor(cardId){
   DRAFT = existing
     ? JSON.parse(JSON.stringify(existing))
     : {id:uid(), edition_id:EDITION.id, author:guessName(), role:guessRole(), position:CARDS.length,
-       mood:"building", elements:[], owner_id: UID};
+       elements:[], owner_id: UID};
   $("#sheetTitle").textContent = existing && !canEdit(existing)
     ? "Editing "+existing.author+"'s card" : "Your card";
   const picked = ME || (existing ? DRAFT.author : "");
   $("#edAuthor").innerHTML =
     (picked?"":`<option value="" selected disabled>Choose your name…</option>`)
     + ROSTER.map(([n])=>`<option${n===picked?" selected":""}>${n}</option>`).join("")
-    + `<option value="__other"${ROSTER.some(([n])=>n===DRAFT.author)?"":" selected"}>Someone else…</option>`;
-  if(!ROSTER.some(([n])=>n===DRAFT.author)) $("#edAuthor").value="__other";
+    + `<option value="__other">Someone else…</option>`;
+  // Only land on "Someone else" for a real custom name — never for a blank
+  // one, or a first-time visitor would open on the wrong option.
+  const custom = DRAFT.author && !ROSTER.some(([n])=>n===DRAFT.author);
+  $("#edAuthor").value = custom ? "__other" : (picked || "");
+  if(custom) $("#edAuthor").insertAdjacentHTML("afterbegin",
+    `<option selected>${esc(DRAFT.author)}</option>`);
   $("#edRole").value = DRAFT.role||"";
-  $("#edMood").value = DRAFT.mood||"building";
   $("#sheetMsg").textContent="";
   drawEditors();
+  drawDanger(!!existing);
   $("#sheet").classList.add("open");
   document.body.style.overflow="hidden";
 }
+/* Empty when this browser has never posted. Falling back to the first name
+   on the roster meant anyone who ignored the dropdown saved as Brian. */
 function guessName(){
-  if(!ME) return ROSTER[0][0];
+  if(!ME) return "";
   const hit=ROSTER.find(([n])=>n.toLowerCase()===ME.toLowerCase());
   return hit?hit[0]:ME;
 }
-function guessRole(){ const n=guessName(); return (ROSTER.find(([a])=>a===n)||[])[1]||""; }
+function guessRole(){ const n=guessName(); return n ? (ROSTER.find(([a])=>a===n)||[])[1]||"" : ""; }
+const ROSTER_LANES = ROSTER.map(([,r])=>r);
 
 $("#edAuthor").addEventListener("change",e=>{
   if(!DRAFT) return;
@@ -951,8 +1027,11 @@ $("#edAuthor").addEventListener("change",e=>{
     const n=prompt("Name?"); if(n){ DRAFT.author=n.trim();
       $("#edAuthor").insertAdjacentHTML("afterbegin",`<option selected>${esc(DRAFT.author)}</option>`); }
   } else { DRAFT.author=e.target.value;
+    // Keep the lane in step with the name. Only overwrite a lane that was
+    // filled in for them — anything hand-typed is left alone.
     const r=(ROSTER.find(([a])=>a===e.target.value)||[])[1];
-    if(r && !$("#edRole").value) $("#edRole").value=r; }
+    const cur=$("#edRole").value.trim();
+    if(r && (!cur || ROSTER_LANES.includes(cur))) $("#edRole").value=r; }
 });
 
 $("#palette").innerHTML = Object.entries(KINDS).map(([k,v])=>
@@ -965,6 +1044,33 @@ $("#palette").addEventListener("click",e=>{
   DRAFT.elements.push(el); drawEditors();
   const nodes=$$("#elEditors .eled"); nodes[nodes.length-1]?.scrollIntoView({block:"center"});
 });
+
+/* Deleting a whole card. Only offered once the card actually exists, so a
+   half-filled new one is just closed rather than "deleted". */
+function drawDanger(saved){
+  const host=$("#dangerZone");
+  if(!saved){ host.innerHTML=""; return; }
+  const n=(DRAFT.elements||[]).length;
+  host.innerHTML=`<div class="cardactions">
+    <span class="hint">This card and everything on it can be removed for good.</span>
+    <span class="grow"></span>
+    <button class="btn sm plain quiet-danger" id="delCard">Delete this card</button>
+  </div>`;
+  $("#delCard").onclick=()=>{
+    twoStep($("#delCard"),
+      `Delete ${DRAFT.author||"this"}'s card — ${n} ${n===1?"block":"blocks"} and any files?`,
+      async()=>{
+        const id=DRAFT.id, ed=DRAFT.edition_id;
+        await STORE.delCard(id, ed);
+        DRAFT=null;
+        await loadCards(); renderChrome(); await render();
+        await closeSheet();
+        toast("Card deleted.");
+      },
+      {yes:"Delete the card",busy:"Deleting…",
+       onError:e=>{ $("#sheetMsg").innerHTML=`<span class="err">Could not delete it: ${esc(e.message||String(e))}</span>`; }});
+  };
+}
 
 function drawEditors(){
   const host=$("#elEditors"); host.innerHTML="";
@@ -1110,24 +1216,20 @@ function mediaDrop(el,kind){
       swap.textContent="Replace"; swap.onclick=e=>{e.preventDefault();fi.click();};
       const del=document.createElement("button"); del.className="btn sm ghost danger";
       del.textContent="Delete the file permanently";
-      del.onclick=async e=>{ e.preventDefault();
-        if(!confirm("Delete this file for good, and remove this block from your card?\n\nThis cannot be undone."))return;
-        const p=el.src&&el.src.p;
-        del.disabled=true; del.textContent="Deleting…";
-        try{
+      del.onclick=e=>{ e.preventDefault();
+        twoStep(del,"Delete this file for good and remove the block?",async()=>{
+          const p=el.src&&el.src.p;
           if(p){ await STORE.removeFile(p); SIGNED.delete(p); }
-          // Take the whole block out — a block with no file is just an empty frame.
           const at=DRAFT.elements.indexOf(el);
           if(at>-1) DRAFT.elements.splice(at,1); else delete el.src;
-          // Persist straight away. Deleting the file is irreversible, so the card
-          // must not be left pointing at something that no longer exists.
+          // Persist straight away: deleting the file is irreversible, so the
+          // card must not be left pointing at something that is gone.
           await saveDraft({quiet:true});
           drawEditors();
           toast("File deleted and the block removed.");
-        }catch(err){
-          del.disabled=false; del.textContent="Delete the file permanently";
-          toast("Could not delete it: "+(err.message||err),"warn");
-        } };
+        },{yes:"Delete the file",busy:"Deleting…",
+           onError:err=>toast("Could not delete it: "+(err.message||err),"warn")});
+      };
       const note=document.createElement("span"); note.className="hint";
       note.textContent="Removing the block on its own leaves the file in storage.";
       tools.append(swap,del,note);
@@ -1165,7 +1267,6 @@ async function saveDraft(opts){
   const chosen=$("#edAuthor").value;
   if(chosen && chosen!=="__other") DRAFT.author=chosen;
   DRAFT.role=$("#edRole").value.trim();
-  DRAFT.mood=$("#edMood").value;
   if(!DRAFT.owner_id) DRAFT.owner_id=UID;
   if(!DRAFT.author){
     $("#sheetMsg").innerHTML='<span class="err">Choose your name first.</span>';
@@ -1281,19 +1382,67 @@ $("#edPick").addEventListener("change",async e=>{
   SIGNED.clear();
   await loadCards(); renderChrome(); await render();
 });
-$("#newEdition").addEventListener("click",async()=>{
+$("#newEdition").addEventListener("click",()=>{
   const latest = EDITIONS[0]?.week_start || mondayOf(new Date());
   const d=new Date(latest+"T00:00:00"); d.setDate(d.getDate()+7);
   const week=mondayOf(d);
-  if(!confirm(`Start a new rundown for ${prettyWeek(week)}?`)) return;
-  try{
+  twoStep($("#newEdition"),`Start a rundown for ${prettyWeek(week)}?`,async()=>{
     const ed=await STORE.addEdition(week);
     EDITIONS=await STORE.editions();
     EDITION=EDITIONS.find(x=>x.week_start===week)||ed;
     LS("rundown.week",EDITION.week_start); SIGNED.clear();
     await loadCards(); renderChrome(); await render();
-  }catch(e){ toast("Could not create that week: "+(e.message||e),"warn"); }
+    const b=document.createElement("button");
+    b.className="btn sm plain"; b.id="newEdition"; b.title="Start the next week"; b.textContent="New week";
+    document.querySelector(".twostep")?.replaceWith(b);
+    b.addEventListener("click",()=>$("#newEdition").click());
+  },{yes:"Create it",busy:"Creating…",onError:e=>toast("Could not create that week: "+(e.message||e),"warn")});
 });
+
+/* ============================================================
+   RUNNING ORDER
+   ============================================================ */
+function openOrder(){
+  if(!CARDS.length){ toast("Nothing to order yet."); return; }
+  drawOrder();
+  $("#orderSheet").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeOrder(){
+  $("#orderSheet").classList.remove("open"); document.body.style.overflow="";
+  $("#orderMsg").textContent="";
+}
+function drawOrder(){
+  $("#orderList").innerHTML = CARDS.map((c,i)=>`
+    <li data-id="${c.id}">
+      <span class="on">${String(i+1).padStart(2,"0")}</span>
+      <span class="oname">${esc(c.author)}</span>
+      <span class="role">${esc(c.role||"—")}</span>
+      <span class="grow"></span>
+      <button class="btn sm plain" data-up="${i}" ${i===0?"disabled":""} aria-label="Move ${esc(c.author)} earlier">&uarr;</button>
+      <button class="btn sm plain" data-down="${i}" ${i===CARDS.length-1?"disabled":""} aria-label="Move ${esc(c.author)} later">&darr;</button>
+    </li>`).join("");
+  $$("#orderList [data-up]").forEach(b=>b.onclick=()=>move(+b.dataset.up,-1));
+  $$("#orderList [data-down]").forEach(b=>b.onclick=()=>move(+b.dataset.down,1));
+}
+async function move(i,dir){
+  const j=i+dir;
+  if(j<0||j>=CARDS.length) return;
+  [CARDS[i],CARDS[j]]=[CARDS[j],CARDS[i]];      // optimistic
+  CARDS.forEach((c,n)=>c.position=n);
+  drawOrder(); await render();
+  $("#orderMsg").textContent="Saving…";
+  try{
+    await STORE.setOrder(EDITION.id, CARDS.map(c=>c.id));
+    $("#orderMsg").innerHTML='<span class="ok">Order saved.</span>';
+  }catch(e){
+    $("#orderMsg").innerHTML=`<span class="err">Could not save the order: ${esc(e.message||String(e))}</span>`;
+    await loadCards(); drawOrder(); await render();
+  }
+}
+$("#orderBtn").addEventListener("click",openOrder);
+$("#orderClose").addEventListener("click",closeOrder);
+$("#orderSheet").addEventListener("click",e=>{ if(e.target.id==="orderSheet") closeOrder(); });
 
 /* ============================================================
    LIVE UPDATES
