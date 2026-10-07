@@ -554,7 +554,14 @@ const CONFIG = {
 };
 /* ========================================================== */
 
-const CHANNELS = ["Content","SEO","Email","Social Media","Graphic Design","Video","Paid Ads","Outbound"];
+const CHANNELS = ["Content","SEO","Email","Social Media","Graphic Design","Video","Paid Ads","Outbound","Strategy"];
+/* The database stores a card's channel in `dept` as a short key. Show the
+   readable name; keep any custom channel exactly as typed. */
+const DEPTS = {content:"Content",seo:"SEO",email:"Email",social:"Social Media",design:"Graphic Design",
+               video:"Video",paid:"Paid Ads",outbound:"Outbound",strategy:"Strategy"};
+const deptLabel = k => DEPTS[k] || k;
+const deptKey   = l => (Object.entries(DEPTS).find(([,v])=>v===l)||[])[0] || l;
+const fromRow   = r => Object.assign({},r,{channel:deptLabel(r.dept)});
 const KINDS = {
   image:   {icon:"▣", label:"Image",       span:"full"},
   video:   {icon:"▶", label:"Video",       span:"full"},
@@ -663,16 +670,16 @@ const Demo = {
 };
 
 const Live = {
-  async campaigns(){ const {data,error}=await sb.from("campaigns").select("*").eq("archived",false).order("created_at");
+  async campaigns(){ const {data,error}=await sb.from("rd_campaigns").select("*").eq("archived",false).order("sort").order("created_at");
     if(error) throw error; return data; },
-  async addCampaign(name,client){ const {data,error}=await sb.from("campaigns").insert({name,client:client||null}).select().single();
+  async addCampaign(name,client){ const {data,error}=await sb.from("rd_campaigns").insert({name,client:client||null}).select().single();
     if(error) throw error; return data; },
-  async updateCampaign(id,patch){ const {error}=await sb.from("campaigns").update(patch).eq("id",id);
+  async updateCampaign(id,patch){ const {error}=await sb.from("rd_campaigns").update(patch).eq("id",id);
     if(error) throw error; },
   async editions(){ const {data,error}=await sb.from("editions").select("*").order("week_start",{ascending:false});
     if(error) throw error; return data; },
   async cards(edId){ const {data,error}=await sb.from("cards").select("*").eq("edition_id",edId).order("position");
-    if(error) throw error; return data; },
+    if(error) throw error; return data.map(fromRow); },
   async addEdition(week){
     const {data,error}=await sb.from("editions").upsert({week_start:week},{onConflict:"week_start"}).select().single();
     if(error) throw error; return data; },
@@ -680,10 +687,10 @@ const Live = {
     // A card is a channel's update inside a campaign. `author` and `role`
     // are legacy columns from when cards were per person; they just mirror
     // the channel so old constraints stay happy.
-    const row={id:c.id,edition_id:c.edition_id,campaign_id:c.campaign_id,channel:c.channel,author:c.channel,role:c.channel,
+    const row={id:c.id,edition_id:c.edition_id,campaign_id:c.campaign_id,dept:deptKey(c.channel),author:c.channel,role:c.channel,
                position:c.position,elements:c.elements,owner_id:c.owner_id||UID};
     const {data,error}=await sb.from("cards").upsert(row).select().single();
-    if(error) throw error; return data; },
+    if(error) throw error; return fromRow(data); },
   async delCard(id,edId){
     // Take the uploads with it. Leaving them behind is how storage fills up
     // with files nothing references.
@@ -739,7 +746,7 @@ const Live = {
 const Shared = {
   async info(){ const {data,error}=await sb.rpc("share_info",{p_token:SHARE}); if(error) throw error; return (data&&data[0])||null; },
   async editions(){ const {data,error}=await sb.rpc("share_editions",{p_token:SHARE}); if(error) throw error; return data||[]; },
-  async cards(edId){ const {data,error}=await sb.rpc("share_cards",{p_token:SHARE,p_edition:edId}); if(error) throw error; return data||[]; },
+  async cards(edId){ const {data,error}=await sb.rpc("share_cards",{p_token:SHARE,p_edition:edId}); if(error) throw error; return (data||[]).map(fromRow); },
   async comments(edId){ if(!CAN_COMMENT) return [];
     const {data,error}=await sb.rpc("share_comments",{p_token:SHARE,p_edition:edId}); if(error) throw error; return data||[]; },
   async addComment(card,name,body){
@@ -1777,7 +1784,7 @@ function subscribe(){
       if(anySheetOpen()||typing()) return;
       await redraw();
     })
-    .on("postgres_changes",{event:"*",schema:"public",table:"campaigns"}, async()=>{
+    .on("postgres_changes",{event:"*",schema:"public",table:"rd_campaigns"}, async()=>{
       CAMPAIGNS=await STORE.campaigns();
       if(CAMP!=="all" && !campOf(CAMP)) CAMP="all";
       renderChrome();
