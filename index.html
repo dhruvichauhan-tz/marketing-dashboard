@@ -366,32 +366,62 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
 .orderlist .role{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
 .err{color:var(--blocked);font-size:13px}
 .ok{color:var(--shipped);font-size:13px}
+/* ============ CAMPAIGNS + COMMENTS ============ */
+input[type=password]{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:14px;width:100%}
+.cmts{margin-top:clamp(14px,2vw,22px)}
+.cmts>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);
+              font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);padding:6px 0}
+.cmts>summary::-webkit-details-marker{display:none}
+.cmts>summary:hover,.cmts[open]>summary{color:var(--ink)}
+.cmts>summary b{font-weight:500;color:var(--accent)}
+.cmt{padding:11px 0;border-top:1px solid var(--line-soft)}
+.cmt .by{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+         display:flex;gap:10px;flex-wrap:wrap}
+.cmt .by b{font-weight:500;color:var(--ink-2)}
+.cmt.client .by b{color:var(--building)}
+.cmt .txt{color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;font-size:14.5px;margin-top:4px}
+.cmtform{display:grid;gap:9px;margin-top:12px;max-width:640px}
+.cmtform textarea{min-height:64px}
+.cmtform .acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.linkrow{display:flex;gap:8px;align-items:center}
+.linkrow input{flex:1;font-family:var(--mono);font-size:12px}
+.sharebox{margin-bottom:20px}
+.sharebox h4{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:-.02em;margin-bottom:3px}
+.sharebox .hint{margin-bottom:9px}
+input[type=date].pick{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;width:auto;cursor:pointer}
+body.client .teamonly{display:none!important}
 </style>
 </head>
 <body>
 <!-- ============ TOP BAR ============ -->
 <header class="bar">
   <div class="brand"><i></i>Think &amp; Sync Weekly</div>
+  <select class="pick teamonly" id="campPick" aria-label="Which campaign"></select>
+  <button class="btn sm plain teamonly" id="newCamp" title="Start a campaign">New campaign</button>
+  <button class="btn sm plain teamonly" id="wkPrev" title="Previous week" aria-label="Previous week">&lsaquo;</button>
   <select class="pick" id="edPick" aria-label="Which week"></select>
-  <button class="btn sm plain" id="newEdition" title="Start the next week">New week</button>
+  <button class="btn sm plain teamonly" id="wkNext" title="Next week" aria-label="Next week">&rsaquo;</button>
+  <input type="date" class="pick teamonly" id="wkJump" title="Jump to the week containing this date" aria-label="Jump to a date">
+  <button class="btn sm plain teamonly" id="wkNow" title="Back to this week">This week</button>
   <span class="grow"></span>
   <span class="live" id="liveLamp"><i></i><span>Offline</span></span>
-  <button class="btn" id="orderBtn" title="Set who presents in what order">Order</button>
+  <button class="btn teamonly" id="shareBtn" title="Share this campaign with the client" hidden>Share</button>
+  <button class="btn teamonly" id="orderBtn" title="Set the order cards are presented in">Order</button>
   <button class="btn" id="presentBtn">Present</button>
-  <button class="btn go" id="mineBtn">My Card</button>
+  <button class="btn go teamonly" id="mineBtn">Add card</button>
   <button class="btn sm plain" id="themeBtn">Auto</button>
-</header>
-<div id="notices"></div>
+</header><div id="notices"></div>
 
 <!-- ============ HERO ============ -->
 <section class="masthead">
 <div class="wrap">
   <div class="hero">
   <div class="lab" id="heroKick">This week</div>
-  <h1>Think &amp; Sync <b>Weekly</b></h1>
-  <p class="sub">One card each — what you made, what you&rsquo;re thinking about, what you learned, and what&rsquo;s in
-     your way. Bring a visual and the few sentences that make it mean something.</p>
-  <nav class="runstrip" id="runstrip" aria-label="Running order"></nav>
+  <h1 id="heroH1">Think &amp; Sync <b>Weekly</b></h1>
+  <p class="sub" id="heroSub">One card per channel, filed under a campaign &mdash; what was made, what&rsquo;s being thought about,
+     what was learned, and what&rsquo;s in the way. Bring a visual and the few sentences that make it mean something.</p>
+  
+<nav class="runstrip" id="runstrip" aria-label="Running order"></nav>
     <div class="hero-stats" id="heroStats"></div>
   </div>
 </div>
@@ -401,9 +431,9 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
 <div class="wrap"><div id="filterBar"></div><main id="reel"></main></div>
 
 <footer class="foot"><div class="wrap"><div class="inner">
-  <div><b>How this works.</b> One card per person per week. Anyone with the link can post, and everyone sees
-    each other&rsquo;s update the moment it lands.</div>
-  <div style="margin-top:10px" id="footStatus"></div>
+  <div id="footHow"><b>How this works.</b> One card per channel, filed under a campaign. The team sees updates the
+    moment they land; a client sees only the campaign you share with them.</div>
+  <div style="margin-top:10px"><span id="footStatus"></span></div>
 </div></div></footer>
 
 <!-- ============ PRESENT ============ -->
@@ -431,9 +461,10 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
       <button class="btn" id="orderClose">Done</button>
     </div>
     <div class="sheet-bd">
-      <p class="hint" style="margin-bottom:14px">The order everyone presents in. Moves save straight away, and
+      <p class="hint" style="margin-bottom:14px">The order this campaign&rsquo;s cards are presented in. Moves save straight away, and
          everyone else&rsquo;s board reorders too.</p>
-      <ol class="orderlist" id="orderList"></ol>
+      
+<ol class="orderlist" id="orderList"></ol>
     </div>
   </div>
 </div>
@@ -457,12 +488,56 @@ textarea{resize:vertical;min-height:78px;font-family:inherit;line-height:1.55}
     </div>
     <div class="sheet-bd">
       <div class="row" style="margin-bottom:26px">
-        <div class="fld"><label for="edAuthor">Your name</label><select id="edAuthor"></select></div>
-        <div class="fld"><label for="edRole">Lane</label><input type="text" id="edRole" placeholder="Graphics" maxlength="40"></div>
+        <div class="fld"><label for="edCamp">Campaign</label><select id="edCamp"></select></div>
+        <div class="fld"><label for="edChan">Channel</label><select id="edChan"></select></div>
+        <div class="fld" id="edOtherWrap" hidden><label for="edOther">Channel name</label><input type="text" id="edOther" maxlength="40" placeholder="Events"></div>
       </div>
-      <div id="elEditors"></div>
+      
+<div id="elEditors"></div>
       <div id="dangerZone"></div>
       <p class="hint" id="elEmpty">Nothing here yet. Start with a visual, then say what it shows.</p>
+    </div>
+  </div>
+</div>
+<!-- ============ NEW CAMPAIGN ============ -->
+<div class="sheet" id="campSheet" role="dialog" aria-modal="true" aria-labelledby="campTitle">
+  <div class="sheet-inner" style="max-width:520px">
+    <div class="sheet-hd"><div class="hd-top">
+      <h3 id="campTitle">New campaign</h3><span class="grow"></span>
+      <span class="hint" id="campMsg"></span>
+      <button class="btn go" id="campGo">Create</button>
+      <button class="btn plain" id="campClose">Cancel</button>
+    </div></div>
+    <div class="sheet-bd">
+      <div style="display:grid;gap:14px">
+        <div class="fld"><label for="campName">Campaign name</label><input type="text" id="campName" maxlength="80" placeholder="Implementation Mesh"></div>
+        <div class="fld"><label for="campClient">Client <span style="text-transform:none;letter-spacing:0">(optional)</span></label><input type="text" id="campClient" maxlength="80" placeholder="Taazaa"></div>
+        <p class="hint">Every card is filed under a campaign. Once it exists you can share it with the client from the board.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHARE ============ -->
+<div class="sheet" id="shareSheet" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="sheet-inner" style="max-width:640px">
+    <div class="sheet-hd"><div class="hd-top">
+      <h3 id="shareTitle">Share</h3><span class="grow"></span>
+      <button class="btn" id="shareClose">Done</button>
+    </div></div>
+    <div class="sheet-bd">
+      <p class="hint" style="margin-bottom:18px" id="shareNote">Each link opens this one campaign and nothing else. No sign-in for the client.</p>
+      <div class="sharebox">
+        <h4>View only</h4>
+        <p class="hint">The client can read every card in this campaign. No comments.</p>
+        <div class="linkrow"><input type="text" id="lnkView" readonly><button class="btn sm" data-copy="lnkView">Copy</button></div>
+      </div>
+      <div class="sharebox">
+        <h4>Comment only</h4>
+        <p class="hint">Same view, and the client can leave comments on any card. Your replies show to them too.</p>
+        <div class="linkrow"><input type="text" id="lnkComment" readonly><button class="btn sm" data-copy="lnkComment">Copy</button></div>
+      </div>
+      <div class="cardactions" id="shareActions"></div>
     </div>
   </div>
 </div>
@@ -479,11 +554,7 @@ const CONFIG = {
 };
 /* ========================================================== */
 
-const ROSTER = [
-  ["Brian","Strategic Lead"],["Dhruvi","Account Manager"],["David","Content Lead"],
-  ["Shobhana","Content Writer"],["Shivang","SEO"],["Satyendra","Email & Automation"],
-  ["Raghav","Graphics"],["Sanjana","Video"],["Reet","Social Media"],["Abhinav","Analytics"]
-];
+const CHANNELS = ["Content","SEO","Email","Social Media","Graphic Design","Video","Paid Ads","Outbound"];
 const KINDS = {
   image:   {icon:"▣", label:"Image",       span:"full"},
   video:   {icon:"▶", label:"Video",       span:"full"},
@@ -502,22 +573,31 @@ const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "x"+Math.random().toString(36).slice(2)+Date.now().toString(36));
 const LS = (k,v) => { try { if (v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); } catch(e){ return null; } };
 const mondayOf = d => { const x=new Date(d); const off=(x.getDay()+6)%7; x.setDate(x.getDate()-off);
-  return x.toISOString().slice(0,10); };
+  // local date parts, not toISOString(): that goes via UTC and shifts the day east of Greenwich
+  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); };
 const prettyWeek = iso => { const a=new Date(iso+"T00:00:00"); const b=new Date(a); b.setDate(a.getDate()+6);
   const f=(d,m)=>d.toLocaleDateString("en-US",m);
   return f(a,{day:"numeric",month:"short"})+" – "+f(b,{day:"numeric",month:"short",year:"numeric"}); };
+
+/* A client opens the page with ?c=<token>. That is the whole switch: the
+   page then talks only to the share_* functions in the database, which
+   return one campaign and nothing else. */
+const SHARE  = new URLSearchParams(location.search).get("c") || "";
+const CLIENT = !!SHARE;
+let CAN_COMMENT = false;
+if(CLIENT) document.body.classList.add("client");
+const makeToken = () => (uid()+uid()).replace(/[^a-z0-9]/gi,"").slice(0,40);
 
 /* ============================================================
    STORE — one interface, two backends
    ============================================================ */
 let DEMO = !CONFIG.SUPABASE_URL.startsWith("http");
 let sb = null;
-let ME  = LS("rundown.me") || "";   // the name you picked, kept in this browser
 let UID = null;                     // this browser's anonymous user id, from Supabase
 const SIGNED = new Map();
 
 const Demo = {
-  key:"rundown.demo",
+  key:"rundown.demo2",
   read(){ try { return JSON.parse(LS(this.key)||"null") || this.seed(); } catch(e){ return this.seed(); } },
   write(d){ try { LS(this.key, JSON.stringify(d)); } catch(e){ toast("Demo storage is full — connect Supabase to keep going.","warn"); } },
   seed(){
@@ -532,26 +612,36 @@ const Demo = {
       `<text x="60" y="640" font-family="DM Sans,Helvetica,sans-serif" font-weight="700" font-size="66" fill="rgba(255,255,255,.94)">${t}</text>`+
       `<text x="60" y="694" font-family="monospace" font-size="23" fill="#29E8AE" opacity=".62">placeholder — replace with real work</text></svg>`);
     const w = mondayOf(new Date());
-    const d = { editions:[{id:"ed1", week_start:w, title:"Demo rundown"}], cards:[
-      {id:"c1",edition_id:"ed1",author:"Raghav",role:"Graphics",position:0,owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+    const k = "k1";
+    const d = {
+      campaigns:[{id:k,name:"Implementation Mesh",client:"Taazaa",view_token:makeToken(),comment_token:makeToken(),archived:false,created_at:new Date().toISOString()}],
+      editions:[{id:"ed1", week_start:w, title:"Demo rundown"}],
+      comments:[],
+      cards:[
+      {id:"c1",edition_id:"ed1",campaign_id:k,channel:"Graphic Design",position:0,owner_id:"demo",elements:[
         {id:uid(),kind:"image",span:"full",src:{d:sw(78,"Whitepaper cover v3")},caption:"Third pass on the $2M cover. Number set in DM Sans at 240pt, teal pulled back to a single rule so the figure carries it."},
         {id:uid(),kind:"insight",span:"half",body:"The versions that tested best all had one number and nothing else competing with it. Every time we added a second stat, the first one stopped landing."},
-        {id:uid(),kind:"ask",span:"half",body:"Need a decision on whether the cover number stays $2M or moves to $21M before I cut the ad set.",of:"Brian"}]},
-      {id:"c2",edition_id:"ed1",author:"Sanjana",role:"Video",position:1,owner_id:"demo",updated_at:new Date().toISOString(),elements:[
+        {id:uid(),kind:"ask",span:"half",body:"Need a decision on whether the cover number stays $2M or moves to $21M before the ad set is cut.",of:"Strategy"}]},
+      {id:"c2",edition_id:"ed1",campaign_id:k,channel:"Video",position:1,owner_id:"demo",elements:[
         {id:uid(),kind:"board",span:"full",layout:"strip",title:"Agentic AI POV — new cold open",frames:[
           {src:{d:sw(20,"01 · Hook")},caption:"Hard cut to the failure stat. No logo, no title card."},
-          {src:{d:sw(45,"02 · Turn")},caption:"Yasir, mid-sentence. Straight into the claim."},
+          {src:{d:sw(45,"02 · Turn")},caption:"Speaker, mid-sentence. Straight into the claim."},
           {src:{d:sw(68,"03 · Proof")},caption:"Architecture diagram builds behind him."},
           {src:{d:sw(90,"04 · Ask")},caption:"One line, one CTA, out."}]},
-        {id:uid(),kind:"text",span:"half",title:"Why I recut it",body:"Retention on the first version fell off a cliff at eleven seconds — right where the title card sat. Cutting the card entirely buys us four more seconds before the first drop."},
+        {id:uid(),kind:"text",span:"half",title:"Why we recut it",body:"Retention on the first version fell off a cliff at eleven seconds — right where the title card sat. Cutting the card entirely buys us four more seconds before the first drop."},
         {id:uid(),kind:"metric",span:"third",value:"0:11",label:"Where we were losing them",note:"First version. New cut holds to 0:15."}]},
-      {id:"c3",edition_id:"ed1",author:"Shivang",role:"SEO",position:2,owner_id:"demo",updated_at:new Date().toISOString(),elements:[
-        {id:uid(),kind:"insight",span:"full",body:"Sixty percent of our US search clicks are people typing our own name. Non-brand intent produced seven clicks in four weeks — and Search Console files every one of those brand clicks as “non-branded”."},
-        {id:uid(),kind:"blocker",span:"half",body:"Cannot re-baseline US traffic until internal Ohio traffic and datacenter hits are filtered out of GA4. Right now 39% of what we report as US traffic is us or a robot.",needFrom:"GA4 admin access — Satyendra"},
+      {id:"c3",edition_id:"ed1",campaign_id:k,channel:"SEO",position:2,owner_id:"demo",elements:[
+        {id:uid(),kind:"insight",span:"full",body:"Sixty percent of our US search clicks are people typing our own name. Non-brand intent produced seven clicks in four weeks."},
+        {id:uid(),kind:"blocker",span:"half",body:"Cannot re-baseline US traffic until internal and datacenter hits are filtered out of GA4. Right now 39% of what we report as US traffic is us or a robot.",needFrom:"GA4 admin access"},
         {id:uid(),kind:"metric",span:"third",value:"7",label:"Non-brand US clicks / 28d",note:"The real SEO number."}]}
     ]};
     this.write(d); return d;
   },
+  async campaigns(){ return this.read().campaigns.filter(c=>!c.archived).sort((a,b)=>a.created_at.localeCompare(b.created_at)); },
+  async addCampaign(name,client){ const d=this.read();
+    const c={id:uid(),name,client:client||null,view_token:makeToken(),comment_token:makeToken(),archived:false,created_at:new Date().toISOString()};
+    d.campaigns.push(c); this.write(d); return c; },
+  async updateCampaign(id,patch){ const d=this.read(); const c=d.campaigns.find(x=>x.id===id); if(c) Object.assign(c,patch); this.write(d); },
   async editions(){ return this.read().editions.sort((a,b)=>b.week_start.localeCompare(a.week_start)); },
   async cards(edId){ return this.read().cards.filter(c=>c.edition_id===edId).sort((a,b)=>a.position-b.position); },
   async addEdition(week){ const d=this.read();
@@ -559,17 +649,26 @@ const Demo = {
     const e={id:uid(),week_start:week,title:null}; d.editions.push(e); this.write(d); return e; },
   async saveCard(c){ const d=this.read(); const i=d.cards.findIndex(x=>x.id===c.id);
     c.updated_at=new Date().toISOString(); if(i>=0) d.cards[i]=c; else d.cards.push(c); this.write(d); return c; },
-  async delCard(id){ const d=this.read(); d.cards=d.cards.filter(c=>c.id!==id); this.write(d); },
+  async delCard(id){ const d=this.read(); d.cards=d.cards.filter(c=>c.id!==id); d.comments=d.comments.filter(m=>m.card_id!==id); this.write(d); },
   async upload(file){ return { d: await fileToDataUrl(file) }; },
   async removeFile(){ /* demo files live inside the record itself */ },
-  async claim(){ /* everything is yours in demo mode */ },
   async setOrder(edId,ids){
     const d=this.read();
     ids.forEach((id,i)=>{ const c=d.cards.find(x=>x.id===id); if(c) c.position=i; });
+    this.write(d); },
+  async comments(edId,ids){ return this.read().comments.filter(m=>ids.includes(m.card_id)); },
+  async addComment(card,name,body){ const d=this.read();
+    d.comments.push({id:uid(),card_id:card.id,campaign_id:card.campaign_id,author:name,from_client:false,body,created_at:new Date().toISOString()});
     this.write(d); }
 };
 
 const Live = {
+  async campaigns(){ const {data,error}=await sb.from("campaigns").select("*").eq("archived",false).order("created_at");
+    if(error) throw error; return data; },
+  async addCampaign(name,client){ const {data,error}=await sb.from("campaigns").insert({name,client:client||null}).select().single();
+    if(error) throw error; return data; },
+  async updateCampaign(id,patch){ const {error}=await sb.from("campaigns").update(patch).eq("id",id);
+    if(error) throw error; },
   async editions(){ const {data,error}=await sb.from("editions").select("*").order("week_start",{ascending:false});
     if(error) throw error; return data; },
   async cards(edId){ const {data,error}=await sb.from("cards").select("*").eq("edition_id",edId).order("position");
@@ -578,11 +677,11 @@ const Live = {
     const {data,error}=await sb.from("editions").upsert({week_start:week},{onConflict:"week_start"}).select().single();
     if(error) throw error; return data; },
   async saveCard(c){
-    // `mood` is no longer part of the product — a card holds a mix of
-    // finished and half-formed work, so one state per card was a lie.
-    // The column keeps its database default; we simply stop writing it.
-    const row={id:c.id,edition_id:c.edition_id,author:c.author,role:c.role,position:c.position,
-               elements:c.elements,owner_id:c.owner_id||UID};
+    // A card is a channel's update inside a campaign. `author` and `role`
+    // are legacy columns from when cards were per person; they just mirror
+    // the channel so old constraints stay happy.
+    const row={id:c.id,edition_id:c.edition_id,campaign_id:c.campaign_id,channel:c.channel,author:c.channel,role:c.channel,
+               position:c.position,elements:c.elements,owner_id:c.owner_id||UID};
     const {data,error}=await sb.from("cards").upsert(row).select().single();
     if(error) throw error; return data; },
   async delCard(id,edId){
@@ -598,9 +697,15 @@ const Live = {
     }catch(e){ /* the Monday sweep reclaims anything missed */ }
     const {error}=await sb.from("cards").delete().eq("id",id);
     if(error) throw error; },
-  async claim(id){ const {error}=await sb.rpc("claim_card",{card:id}); if(error) throw error; },
   async setOrder(edId,ids){
-    const {error}=await sb.rpc("set_card_order",{p_edition:edId,p_ids:ids});
+    const res=await Promise.all(ids.map((id,i)=>sb.from("cards").update({position:i}).eq("id",id)));
+    const bad=res.find(r=>r.error); if(bad) throw bad.error; },
+  async comments(edId,ids){
+    if(!ids.length) return [];
+    const {data,error}=await sb.from("card_comments").select("*").in("card_id",ids).order("created_at");
+    if(error) throw error; return data; },
+  async addComment(card,name,body){
+    const {error}=await sb.from("card_comments").insert({card_id:card.id,campaign_id:card.campaign_id,author:name,from_client:false,body});
     if(error) throw error; },
   async upload(file,edId,cardId){
     const ext=(file.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"");
@@ -613,6 +718,11 @@ const Live = {
     return {p:path}; },
   async removeFile(path){ const {error}=await sb.storage.from("rundown").remove([path]); if(error) throw error; },
   async sign(paths){
+    if(CLIENT){
+      // The client page has no login, so it reads files by their public URL.
+      paths.forEach(p=>{ if(!SIGNED.has(p)) SIGNED.set(p, sb.storage.from("rundown").getPublicUrl(p).data.publicUrl); });
+      return;
+    }
     // TEN YEARS. Files stay on the board until somebody deletes them on purpose.
     const need=paths.filter(p=>!SIGNED.has(p));
     for(let i=0;i<need.length;i+=90){
@@ -622,6 +732,18 @@ const Live = {
       (data||[]).forEach(r=>{ if(r.signedUrl) SIGNED.set(r.path,r.signedUrl); });
     }
   }
+};
+
+/* What a client link can do: ask the database for ONE campaign, by token.
+   Read-only apart from a comment, and only when the link allows it. */
+const Shared = {
+  async info(){ const {data,error}=await sb.rpc("share_info",{p_token:SHARE}); if(error) throw error; return (data&&data[0])||null; },
+  async editions(){ const {data,error}=await sb.rpc("share_editions",{p_token:SHARE}); if(error) throw error; return data||[]; },
+  async cards(edId){ const {data,error}=await sb.rpc("share_cards",{p_token:SHARE,p_edition:edId}); if(error) throw error; return data||[]; },
+  async comments(edId){ if(!CAN_COMMENT) return [];
+    const {data,error}=await sb.rpc("share_comments",{p_token:SHARE,p_edition:edId}); if(error) throw error; return data||[]; },
+  async addComment(card,name,body){
+    const {error}=await sb.rpc("share_add_comment",{p_token:SHARE,p_card:card.id,p_author:name,p_body:body}); if(error) throw error; }
 };
 let STORE = Demo;
 
@@ -672,14 +794,16 @@ function twoStep(btn,question,onYes,opts){
 }
 function toast(msg,kind){ const n=notice(kind,"Note",esc(msg)); setTimeout(()=>n.remove(),6000); }
 
-function setMe(name){ ME = name||""; LS("rundown.me", ME); }
-
 async function initStore(){
   if(DEMO){
     STORE=Demo; UID="demo";
+    if(CLIENT){
+      notice("warn","Demo mode","Client links need the database connected — they can\u2019t open in demo mode.");
+      return false;
+    }
     notice("", "Demo mode",
       `Nothing here is shared yet — updates save to this browser only. Open <code>index.html</code>, paste your two
-       Supabase values into <code>CONFIG</code>, and everyone's posts start landing for everyone. Setup is in <b>README.md</b>.`);
+       Supabase values into <code>CONFIG</code>, and everyone's posts start landing for everyone.`);
     return true;
   }
   if(!window.supabase || !window.supabase.createClient){
@@ -704,12 +828,19 @@ async function initStore(){
     return false;
   }
 
+  if(CLIENT){
+    // No session is kept: a client link must never pick up a team login that
+    // happens to be saved in the same browser.
+    sb = window.supabase.createClient(base, CONFIG.SUPABASE_ANON_KEY,
+      {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+    STORE = Shared;
+    return true;
+  }
+
   sb = window.supabase.createClient(base, CONFIG.SUPABASE_ANON_KEY);
   STORE = Live;
 
-  // No login screen. Each browser gets a quiet, permanent anonymous
-  // identity, which is what lets a card belong to the person who made
-  // it. Nobody types anything.
+  // No login screen. Each browser gets a quiet anonymous identity.
   let {data:{session}} = await sb.auth.getSession();
   if(!session){
     const {data,error} = await sb.auth.signInAnonymously();
@@ -722,10 +853,7 @@ async function initStore(){
         : /rate|too many/i.test(m)
           ? `Too many sign-ins from this network in the last hour. Raise
              <b>Authentication → Rate Limits → Anonymous sign-ins</b>, or wait a few minutes.`
-        : /invalid|api key|jwt/i.test(m)
-          ? `That API key was rejected. Copy the <b>anon public</b> key from
-             <b>Settings → API</b> — not the service_role key.`
-          : esc(m));
+        : esc(m));
       return false;
     }
     session = data.session;
@@ -737,50 +865,96 @@ async function initStore(){
 /* ============================================================
    STATE
    ============================================================ */
-let EDITIONS=[], EDITION=null, CARDS=[];
-let VIEW=[];              // what the board is showing right now
-let FILTER="all";         // all | blocker | ask
+let EDITIONS=[], EDITION=null, CAMPAIGNS=[], CAMP="all";
+let ALL=[];             // every card this week, across campaigns
+let CARDS=[];           // the cards for the campaign being looked at
+let COMMENTS={};        // card id → comments
+let VIEW=[];            // what the board is showing right now
+let FILTER="all";       // all | blocker | ask
+const OPEN_CMTS=new Set();
+
+const campOf = id => CAMPAIGNS.find(c=>c.id===id);
+const chanOf = c => c.channel || c.author || "Update";
 
 async function load(){
-  EDITIONS = await STORE.editions();
-  if(!EDITIONS.length) EDITIONS=[await STORE.addEdition(mondayOf(new Date()))];
-  const want = LS("rundown.week");
-  EDITION = EDITIONS.find(e=>e.week_start===want) || EDITIONS[0];
+  if(CLIENT){
+    const info=await Shared.info();
+    if(!info){ badLink(); return false; }
+    CAMPAIGNS=[{id:info.campaign_id,name:info.name,client:info.client}];
+    CAN_COMMENT=!!info.can_comment; CAMP=info.campaign_id;
+    EDITIONS=await Shared.editions();
+    if(!EDITIONS.length) EDITIONS=[{id:null,week_start:mondayOf(new Date())}];
+  }else{
+    CAMPAIGNS=await STORE.campaigns();
+    EDITIONS=await STORE.editions();
+    const wantC=LS("rundown.camp");
+    CAMP=CAMPAIGNS.some(c=>c.id===wantC)?wantC:"all";
+  }
+  // The team lands on the current week, however long since the last update;
+  // a week nobody has filed in yet is simply empty until the first card.
+  // A client lands on the latest week that has something in it.
+  EDITION = CLIENT ? EDITIONS[0]
+    : (EDITIONS.find(e=>e.week_start===mondayOf(new Date())) || {id:null,week_start:mondayOf(new Date())});
   await loadCards();
   renderChrome(); await render();
+  return true;
+}
+function badLink(){
+  ["#heroStats","#runstrip","#edPick","#presentBtn"].forEach(s=>{ const n=$(s); if(n) n.style.display="none"; });
+  $("#heroKick").textContent="Client review";
+  $("#heroSub").textContent="";
+  $("#reel").innerHTML=`<div class="spread"><div class="empty"><h3>This link isn&rsquo;t active</h3>
+    <p>It may have been replaced or the campaign closed. Ask the Taazaa team for a fresh link.</p></div></div>`;
 }
 async function loadCards(){
-  CARDS = await STORE.cards(EDITION.id);
+  ALL = EDITION.id ? await STORE.cards(EDITION.id) : [];
+  const rank=new Map(CAMPAIGNS.map((c,i)=>[c.id,i]));
+  ALL = ALL.filter(c=>rank.has(c.campaign_id))
+           .sort((a,b)=>(rank.get(a.campaign_id)-rank.get(b.campaign_id))||((a.position||0)-(b.position||0)));
+  CARDS = CAMP==="all" ? ALL : ALL.filter(c=>c.campaign_id===CAMP);
   if(!DEMO){
     const paths=[];
-    CARDS.forEach(c=>(c.elements||[]).forEach(el=>{
+    ALL.forEach(c=>(c.elements||[]).forEach(el=>{
       if(el.src&&el.src.p) paths.push(el.src.p);
       if(el.poster&&el.poster.p) paths.push(el.poster.p);
       (el.frames||[]).forEach(f=>{ if(f.src&&f.src.p) paths.push(f.src.p); });
     }));
     if(paths.length) await Live.sign([...new Set(paths)]);
   }
+  COMMENTS={};
+  try{
+    const list=await STORE.comments(EDITION.id, ALL.map(c=>c.id));
+    list.forEach(m=>(COMMENTS[m.card_id]=COMMENTS[m.card_id]||[]).push(m));
+  }catch(e){ console.warn("comments did not load",e); }
 }
 function shortWeek(iso){
   const full=prettyWeek(iso);
   return full.endsWith(", "+new Date().getFullYear()) ? full.replace(/, \d{4}$/,"") : full;
 }
 function renderChrome(){
-  $("#edPick").innerHTML = EDITIONS.map(e=>
+  const weeks = EDITIONS.some(e=>e.week_start===EDITION.week_start) ? EDITIONS
+    : [...EDITIONS, EDITION].sort((a,b)=>b.week_start.localeCompare(a.week_start));
+  if(!CLIENT) $("#wkJump").value = EDITION.week_start;
+  $("#edPick").innerHTML = weeks.map(e=>
     `<option value="${e.week_start}"${e.week_start===EDITION.week_start?" selected":""}>${shortWeek(e.week_start)}${
       e.week_start===mondayOf(new Date())?" · now":""}</option>`).join("");
-  $("#heroKick").textContent = (EDITION.week_start===mondayOf(new Date())?"This week · ":"") + prettyWeek(EDITION.week_start);
-}
-// Whose card is this? Enforced in the database by owner_id — you can
-// only change a card this browser created, or one nobody has claimed.
-// Soft in one direction only: anyone can take an orphaned card back.
-// The board keeps other
-// people's Edit buttons out of your way. It is a courtesy, not a lock —
-// see the note in README.md about what an open board means.
-function canEdit(c){
-  if(DEMO) return true;
-  if(!c.owner_id) return true;            // nobody has claimed it
-  return c.owner_id === UID;
+  const camp = CAMP==="all" ? null : campOf(CAMP);
+  const now = EDITION.week_start===mondayOf(new Date());
+  if(!CLIENT){
+    $("#campPick").innerHTML = `<option value="all">All campaigns</option>`+CAMPAIGNS.map(c=>
+      `<option value="${c.id}"${c.id===CAMP?" selected":""}>${esc(c.name)}</option>`).join("");
+    $("#shareBtn").hidden = !camp;
+    $("#heroKick").textContent = (camp?camp.name+" · ":"")+(now?"This week · ":"")+prettyWeek(EDITION.week_start);
+    return;
+  }
+  // Client view: the campaign is the headline.
+  $("#heroKick").textContent = "Client review · "+prettyWeek(EDITION.week_start);
+  if(camp){
+    const words=camp.name.trim().split(/\s+/); const last=words.pop();
+    $("#heroH1").innerHTML=(words.length?esc(words.join(" "))+" ":"")+`<b>${esc(last)}</b>`;
+    $("#heroSub").textContent = "Updates from the Taazaa team, channel by channel."+(CAN_COMMENT?" Open Comments on any card to leave feedback.":"");
+    document.title = camp.name+" · Taazaa";
+  }
 }
 function srcOf(o){ if(!o) return ""; if(o.d) return o.d; if(o.p) return SIGNED.get(o.p)||""; return ""; }
 
@@ -827,10 +1001,9 @@ async function render(){
   paintFilterBar(FILTER==="blocker"?blockers:asks, items);
 
   if(FILTER!=="all"){
-    const people=[...new Set(items.map(i=>i.card.author))];
     $("#runstrip").innerHTML = items.length
       ? items.map((it,i)=>`<a href="#d${i}"><span class="n">${String(i+1).padStart(2,"0")}</span>
-          <i style="background:var(--${FILTER==="blocker"?"blocked":"building"})"></i>${esc(it.card.author)}</a>`).join("")
+          <i style="background:var(--${FILTER==="blocker"?"blocked":"building"})"></i>${esc(chanOf(it.card))}</a>`).join("")
       : `<span class="hint" style="opacity:.8">Nothing to show.</span>`;
     reel.innerHTML = items.length
       ? items.map((it,i)=>digestHtml(it,i,items.length)).join("")
@@ -844,31 +1017,35 @@ async function render(){
 
   $("#runstrip").innerHTML = VIEW.length
     ? VIEW.map((c,i)=>`<a href="#s${i}"><span class="n">${String(i+1).padStart(2,"0")}</span>
-        <i style="background:var(--${hasKind(c,"blocker")?"blocked":hasKind(c,"ask")?"building":"shipped"})"></i>${esc(c.author)}</a>`).join("")
-    : `<span class="hint" style="opacity:.8">Nobody has filed yet. Yours can be the first — hit <b>My Card</b>.</span>`;
+        <i style="background:var(--${hasKind(c,"blocker")?"blocked":hasKind(c,"ask")?"building":"shipped"})"></i>${esc(chanOf(c))}</a>`).join("")
+    : `<span class="hint" style="opacity:.8">${CLIENT?"Nothing has been shared yet.":"Nothing filed yet. Hit <b>Add card</b> to start."}</span>`;
 
   if(!VIEW.length){
+    const camp = CAMP==="all" ? null : campOf(CAMP);
     reel.innerHTML=`<div class="spread"><div class="empty">
-      <h3>Empty week</h3>
-      <p>No cards for ${esc(prettyWeek(EDITION.week_start))} yet. The first one sets the tone — lead with the visual.</p>
-      <button class="btn go" onclick="openEditor()">Start my card</button></div></div>`;
+      <h3>${CLIENT?"Nothing here yet":"Empty week"}</h3>
+      <p>${CLIENT
+        ? "The team hasn&rsquo;t posted for this week. Try another week, or check back soon."
+        : `No cards ${camp?"for "+esc(camp.name)+" ":""}in ${esc(prettyWeek(EDITION.week_start))} yet. The first one sets the tone — lead with the visual.`}</p>
+      ${CLIENT?"":`<button class="btn go" onclick="openEditor()">Add a card</button>`}</div></div>`;
     wireSpreads(); return;
   }
   reel.innerHTML = VIEW.map((c,i)=>spreadHtml(c,i)).join("");
   wireSpreads();
 }
 
-/* One blocker or ask, on its own, attributed. Deliberately not the whole
-   card — this view exists to be read down in one pass. */
+/* One blocker or ask, on its own, attributed to its channel. Deliberately
+   not the whole card — this view exists to be read down in one pass. */
 function digestHtml(it,i,total){
   const {card,el}=it;
+  const camp = (!CLIENT && CAMP==="all") ? (campOf(card.campaign_id)||{}).name : "";
   return `<article class="digest" id="d${i}">
     <div class="dhd">
       <span class="num">${String(i+1).padStart(2,"0")} / ${String(total).padStart(2,"0")}</span>
-      <span class="dwho">${esc(card.author)}</span>
-      <span class="role">${esc(card.role||"—")}</span>
+      <span class="dwho">${esc(chanOf(card))}</span>
+      <span class="role">${esc(camp||"")}</span>
       <span class="grow"></span>
-      <button class="btn sm plain" data-goto="${card.id}">Open ${esc(card.author)}&rsquo;s card &rarr;</button>
+      <button class="btn sm plain" data-goto="${card.id}">Open the ${esc(chanOf(card))} card &rarr;</button>
     </div>
     <div class="els">${elHtml(Object.assign({},el,{span:"full"}))}</div>
   </article>`;
@@ -878,12 +1055,12 @@ function paintFilterBar(n,items){
   const host=$("#filterBar");
   if(FILTER==="all"){ host.innerHTML=""; host.classList.remove("on"); return; }
   host.classList.add("on");
-  const people=new Set(items.map(i=>i.card.author)).size;
+  const chans=new Set(items.map(i=>chanOf(i.card))).size;
   const what = FILTER==="blocker" ? plural(n,"blocker","blockers") : plural(n,"open ask","open asks");
   host.innerHTML=`<div class="filterbar">
     <span class="tagline" style="margin:0;color:var(--${FILTER==="blocker"?"blocked":"building"})">${
       FILTER==="blocker"?"Blockers":"Open asks"} this week</span>
-    <span>${n} ${what}${people?` from ${people} ${plural(people,"person","people")}`:""}, on their own.</span>
+    <span>${n} ${what}${chans?` from ${chans} ${plural(chans,"channel","channels")}`:""}, on their own.</span>
     <span class="grow"></span>
     <button class="btn sm" data-clearfilter>Show every card</button></div>`;
 }
@@ -894,25 +1071,44 @@ async function setFilter(f){
   if(f!=="all"){ const bar=$("#filterBar"); if(bar) bar.scrollIntoView({block:"start"}); }
 }
 
+function cmtHtml(c){
+  const list=COMMENTS[c.id]||[];
+  const name=LS("rundown.cname")||"";
+  const when=m=>{ try{ return new Date(m.created_at).toLocaleDateString("en-US",{day:"numeric",month:"short"}); }catch(e){ return ""; } };
+  return `<details class="cmts" data-cid="${c.id}"${OPEN_CMTS.has(c.id)?" open":""}>
+    <summary>Comments <b>${list.length||""}</b></summary>
+    ${list.map(m=>`<div class="cmt${m.from_client?" client":""}"><div class="by"><b>${esc(m.author)}</b>
+        <span>${m.from_client?"Client":"Team"}</span><span>${esc(when(m))}</span></div>
+        <div class="txt">${esc(m.body)}</div></div>`).join("")}
+    <div class="cmtform">
+      <input type="text" data-cn placeholder="Your name" maxlength="60" value="${esc(name)}" aria-label="Your name">
+      <textarea data-cb maxlength="2000" aria-label="Comment"
+        placeholder="${CLIENT?"Leave a comment on this card":"Reply or add a note — the client can see this"}"></textarea>
+      <div class="acts"><button class="btn sm go" data-post="${c.id}">Post</button><span class="hint" data-cm></span></div>
+    </div>
+  </details>`;
+}
+
 function spreadHtml(c,i,stage){
   const els=(c.elements||[]);
   const blocked=hasKind(c,"blocker"), asking=hasKind(c,"ask");
+  const camp = (!CLIENT && CAMP==="all") ? (campOf(c.campaign_id)||{}).name : "";
+  const showCmts = !stage && (!CLIENT || CAN_COMMENT);
   return `<article class="spread" id="${stage?"":"s"+i}"
            data-blocked="${blocked?"1":"0"}" data-card="${c.id}">
     <div class="mast">
       <span class="num">${String(i+1).padStart(2,"0")} / ${String(VIEW.length).padStart(2,"0")}</span>
-      <h2>${esc(c.author)}</h2>
+      <h2>${esc(chanOf(c))}</h2>
       <div class="meta">
-          <span class="role">${esc(c.role||"—")}</span>
+          ${camp?`<span class="role">${esc(camp)}</span>`:""}
           ${blocked?'<span class="state blocked"><i></i>Has a blocker</span>':""}
           ${asking?'<span class="state asking"><i></i>Needs a decision</span>':""}
-          ${stage?"":(canEdit(c)
-            ? `<button class="btn sm ghost" data-edit="${c.id}">Edit</button>`
-            : `<button class="btn sm plain" data-claim="${c.id}" title="${esc(c.author)} made this on another browser. Take it over to edit it.">${esc(c.author)}&rsquo;s &mdash; take it over</button>`)}
+          ${(stage||CLIENT)?"":`<button class="btn sm ghost" data-edit="${c.id}">Edit</button>`}
       </div>
     </div>
     ${els.length?`<div class="els">${els.map(elHtml).join("")}</div>`
       :`<p class="hint">Card started but nothing on it yet.</p>`}
+    ${showCmts?cmtHtml(c):""}
   </article>`;
 }
 
@@ -986,13 +1182,25 @@ function wireSpreads(){
     if(t) t.scrollIntoView({block:"start"});
   });
   $$("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
-  $$("[data-claim]").forEach(b=>b.onclick=()=>{
-    const c=CARDS.find(x=>x.id===b.dataset.claim);
-    twoStep(b,`Take over ${c.author}'s card? Do this if it is yours and you made it on another browser.`,
-      async()=>{ await STORE.claim(c.id); await loadCards(); await render(); openEditor(c.id); },
-      {yes:"Take it over",busy:"Taking over…",
-       onError:e=>toast("Could not take it over: "+(e.message||e),"warn")});
-  });
+  $$(".cmts").forEach(d=>d.addEventListener("toggle",()=>{
+    if(d.open) OPEN_CMTS.add(d.dataset.cid); else OPEN_CMTS.delete(d.dataset.cid); }));
+  $$("[data-post]").forEach(b=>b.onclick=()=>postComment(b));
+}
+
+async function postComment(b){
+  const box=b.closest(".cmtform");
+  const name=box.querySelector("[data-cn]").value.trim();
+  const body=box.querySelector("[data-cb]").value.trim();
+  const msg=box.querySelector("[data-cm]");
+  if(!name){ msg.innerHTML='<span class="err">Add your name.</span>'; return; }
+  if(!body){ msg.innerHTML='<span class="err">Write something first.</span>'; return; }
+  const card=ALL.find(c=>c.id===b.dataset.post); if(!card) return;
+  b.disabled=true; msg.textContent="Posting…";
+  try{
+    LS("rundown.cname",name); OPEN_CMTS.add(card.id);
+    await STORE.addComment(card,name,body);
+    await loadCards(); await render();
+  }catch(e){ b.disabled=false; msg.innerHTML=`<span class="err">${esc(e.message||String(e))}</span>`; }
 }
 
 /* ============================================================
@@ -1000,55 +1208,48 @@ function wireSpreads(){
    ============================================================ */
 let DRAFT=null;
 
-function openEditor(cardId){
-  const mine = CARDS.find(c=>c.owner_id && c.owner_id===UID)
-            || (ME ? CARDS.find(c=>(c.author||"").toLowerCase()===ME.toLowerCase() && canEdit(c)) : null);
-  const existing = cardId ? CARDS.find(c=>c.id===cardId) : mine;
+async function openEditor(cardId){
+  if(CLIENT) return;
+  if(!CAMPAIGNS.length){
+    toast("Start a campaign first — every card is filed under one.");
+    openCamp(); return;
+  }
+  if(!EDITION.id){
+    // First card in a week nobody has used yet: create that week now.
+    try{
+      const ed=await STORE.addEdition(EDITION.week_start);
+      EDITIONS=await STORE.editions();
+      EDITION=EDITIONS.find(e=>e.week_start===ed.week_start)||ed;
+    }catch(e){ toast("Could not start that week: "+(e.message||e),"warn"); return; }
+  }
+  const existing = cardId ? ALL.find(c=>c.id===cardId) : null;
+  const last = LS("rundown.lastcamp");
+  const defCamp = (CAMP!=="all"?CAMP:null) || (CAMPAIGNS.some(c=>c.id===last)?last:CAMPAIGNS[0].id);
   DRAFT = existing
     ? JSON.parse(JSON.stringify(existing))
-    : {id:uid(), edition_id:EDITION.id, author:guessName(), role:guessRole(), position:CARDS.length,
-       elements:[], owner_id: UID};
-  $("#sheetTitle").textContent = existing && !canEdit(existing)
-    ? "Editing "+existing.author+"'s card" : "Your card";
-  const picked = ME || (existing ? DRAFT.author : "");
-  $("#edAuthor").innerHTML =
-    (picked?"":`<option value="" selected disabled>Choose your name…</option>`)
-    + ROSTER.map(([n])=>`<option${n===picked?" selected":""}>${n}</option>`).join("")
-    + `<option value="__other">Someone else…</option>`;
-  // Only land on "Someone else" for a real custom name — never for a blank
-  // one, or a first-time visitor would open on the wrong option.
-  const custom = DRAFT.author && !ROSTER.some(([n])=>n===DRAFT.author);
-  $("#edAuthor").value = custom ? "__other" : (picked || "");
-  if(custom) $("#edAuthor").insertAdjacentHTML("afterbegin",
-    `<option selected>${esc(DRAFT.author)}</option>`);
-  $("#edRole").value = DRAFT.role||"";
+    : {id:uid(), edition_id:EDITION.id, campaign_id:defCamp, channel:LS("rundown.lastchan")||"",
+       position:0, elements:[], owner_id:UID};
+  $("#sheetTitle").textContent = existing ? "Edit card" : "New card";
+
+  $("#edCamp").innerHTML = CAMPAIGNS.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  $("#edCamp").value = DRAFT.campaign_id;
+  const known = CHANNELS.includes(DRAFT.channel);
+  $("#edChan").innerHTML = (DRAFT.channel?"":`<option value="" selected disabled>Choose a channel…</option>`)
+    + CHANNELS.map(n=>`<option>${esc(n)}</option>`).join("")
+    + `<option value="__other">Other…</option>`;
+  $("#edChan").value = DRAFT.channel ? (known?DRAFT.channel:"__other") : "";
+  $("#edOther").value = (DRAFT.channel && !known) ? DRAFT.channel : "";
+  $("#edOtherWrap").hidden = !(DRAFT.channel && !known);
   $("#sheetMsg").textContent="";
   drawEditors();
   drawDanger(!!existing);
   $("#sheet").classList.add("open");
   document.body.style.overflow="hidden";
 }
-/* Empty when this browser has never posted. Falling back to the first name
-   on the roster meant anyone who ignored the dropdown saved as Brian. */
-function guessName(){
-  if(!ME) return "";
-  const hit=ROSTER.find(([n])=>n.toLowerCase()===ME.toLowerCase());
-  return hit?hit[0]:ME;
-}
-function guessRole(){ const n=guessName(); return n ? (ROSTER.find(([a])=>a===n)||[])[1]||"" : ""; }
-const ROSTER_LANES = ROSTER.map(([,r])=>r);
-
-$("#edAuthor").addEventListener("change",e=>{
-  if(!DRAFT) return;
-  if(e.target.value==="__other"){
-    const n=prompt("Name?"); if(n){ DRAFT.author=n.trim();
-      $("#edAuthor").insertAdjacentHTML("afterbegin",`<option selected>${esc(DRAFT.author)}</option>`); }
-  } else { DRAFT.author=e.target.value;
-    // Keep the lane in step with the name. Only overwrite a lane that was
-    // filled in for them — anything hand-typed is left alone.
-    const r=(ROSTER.find(([a])=>a===e.target.value)||[])[1];
-    const cur=$("#edRole").value.trim();
-    if(r && (!cur || ROSTER_LANES.includes(cur))) $("#edRole").value=r; }
+$("#edChan").addEventListener("change",e=>{
+  const other=e.target.value==="__other";
+  $("#edOtherWrap").hidden=!other;
+  if(other) $("#edOther").focus();
 });
 
 $("#palette").innerHTML = Object.entries(KINDS).map(([k,v])=>
@@ -1075,7 +1276,7 @@ function drawDanger(saved){
   </div>`;
   $("#delCard").onclick=()=>{
     twoStep($("#delCard"),
-      `Delete ${DRAFT.author||"this"}'s card — ${n} ${n===1?"block":"blocks"} and any files?`,
+      `Delete the ${DRAFT.channel||"this"} card — ${n} ${n===1?"block":"blocks"}, its comments and any files?`,
       async()=>{
         const id=DRAFT.id, ed=DRAFT.edition_id;
         await STORE.delCard(id, ed);
@@ -1129,7 +1330,7 @@ function editorFor(el,i){
     const slot=document.createElement("div");
     const showUp=()=>{ slot.innerHTML=""; delete el.embed; slot.append(mediaDrop(el,"video"),
       Object.assign(document.createElement("p"),{className:"hint",
-        textContent:"Up to 50 MB. Anything bigger — most of Sanjana's cuts — belongs on a link."})); };
+        textContent:"Up to 50 MB. Anything bigger — most video cuts — belongs on a link."})); };
     const showEm=()=>{ slot.innerHTML=""; delete el.src;
       const i2=bind(inp(el.embed,"https://youtu.be/… · Loom · Vimeo · Drive","url"),"embed");
       slot.append(fld("Video link",i2),
@@ -1189,7 +1390,7 @@ function editorFor(el,i){
   }
   if(el.kind==="blocker"){
     bd.append(fld("What is blocked", bind(ta(el.body,"Cannot re-baseline US traffic until internal hits are filtered out of GA4."),"body")));
-    bd.append(fld("What you need, and from whom", bind(inp(el.needFrom,"GA4 admin access — Vijay"),"needFrom")));
+    bd.append(fld("What you need, and from whom", bind(inp(el.needFrom,"GA4 admin access"),"needFrom")));
   }
   if(el.kind==="ask"){
     bd.append(fld("The decision you need", bind(ta(el.body,"Cover number stays $2M, or moves to $21M?"),"body")));
@@ -1281,18 +1482,27 @@ function mediaDrop(el,kind){
 async function saveDraft(opts){
   const quiet = opts && opts.quiet;
   if(!DRAFT) return false;
-  const chosen=$("#edAuthor").value;
-  if(chosen && chosen!=="__other") DRAFT.author=chosen;
-  DRAFT.role=$("#edRole").value.trim();
-  if(!DRAFT.owner_id) DRAFT.owner_id=UID;
-  if(!DRAFT.author){
-    $("#sheetMsg").innerHTML='<span class="err">Choose your name first.</span>';
-    $("#edAuthor").focus(); return false;
+  const chan=$("#edChan").value;
+  DRAFT.campaign_id=$("#edCamp").value;
+  DRAFT.channel = chan==="__other" ? $("#edOther").value.trim() : chan;
+  if(!DRAFT.campaign_id){
+    $("#sheetMsg").innerHTML='<span class="err">Choose a campaign first.</span>'; return false; }
+  if(!DRAFT.channel){
+    $("#sheetMsg").innerHTML='<span class="err">Choose a channel first.</span>';
+    (chan==="__other"?$("#edOther"):$("#edChan")).focus(); return false;
   }
-  if(!ME) setMe(DRAFT.author);
+  if(!DRAFT.owner_id) DRAFT.owner_id=UID;
+  if(!ALL.some(c=>c.id===DRAFT.id)){
+    // A new card goes to the end of its own campaign.
+    DRAFT.position = ALL.filter(c=>c.campaign_id===DRAFT.campaign_id).reduce((m,c)=>Math.max(m,(c.position||0)+1),0);
+  }
   if(!quiet){ $("#sheetSave").disabled=true; $("#sheetMsg").textContent="Saving…"; }
   try{
     await STORE.saveCard(DRAFT);
+    LS("rundown.lastcamp",DRAFT.campaign_id); LS("rundown.lastchan",DRAFT.channel);
+    // If the card went into a different campaign than the one on screen,
+    // follow it so it doesn't seem to vanish.
+    if(CAMP!=="all" && CAMP!==DRAFT.campaign_id){ CAMP=DRAFT.campaign_id; LS("rundown.camp",CAMP); }
     await loadCards(); renderChrome(); await render();
     if(!quiet){ $("#sheetMsg").textContent="Saved."; }
     return true;
@@ -1337,7 +1547,7 @@ function drawSlide(){
   $("#stageBody").innerHTML=spreadHtml(c,SLIDE,true);
   $("#stageBody").scrollTop=0;
   $("#rail").innerHTML=VIEW.map((_,i)=>`<i class="${i<SLIDE?"done":i===SLIDE?"now":""}"></i>`).join("");
-  $("#stageWho").textContent=`${SLIDE+1} of ${VIEW.length} · ${c.author}${SLIDE<VIEW.length-1?"  ·  next: "+VIEW[SLIDE+1].author:"  ·  last one"}`;
+  $("#stageWho").textContent=`${SLIDE+1} of ${VIEW.length} · ${chanOf(c)}${SLIDE<VIEW.length-1?"  ·  next: "+chanOf(VIEW[SLIDE+1]):"  ·  last one"}`;
   $("#stagePos").textContent=`${String(SLIDE+1).padStart(2,"0")} / ${String(VIEW.length).padStart(2,"0")}`;
   $("#stagePrev").disabled=SLIDE===0;
   $("#stageNext").textContent=SLIDE===VIEW.length-1?"Finish":"Next →";
@@ -1356,7 +1566,7 @@ $("#stageNext").addEventListener("click",()=>go(1));
 $("#stagePrev").addEventListener("click",()=>go(-1));
 $("#stageExit").addEventListener("click",exitPresent);
 addEventListener("keydown",e=>{
-  if($("#sheet").classList.contains("open")){ if(e.key==="Escape") closeSheet(); return; }
+  if(anySheetOpen()){ if(e.key==="Escape"){ if($("#sheet").classList.contains("open")) closeSheet(); else if($("#orderSheet").classList.contains("open")) closeOrder(); else if($("#campSheet").classList.contains("open")) closeCamp(); else if($("#shareSheet").classList.contains("open")) closeShare(); } return; }
   if(!document.body.classList.contains("present")){
     if(e.key==="p"&&!e.metaKey&&!e.ctrlKey&&document.activeElement===document.body) present(0);
     return; }
@@ -1393,34 +1603,28 @@ addEventListener("keydown",e=>{
   });
 })();
 
-$("#edPick").addEventListener("change",async e=>{
-  EDITION = EDITIONS.find(x=>x.week_start===e.target.value) || EDITIONS[0];
-  LS("rundown.week", EDITION.week_start);
-  SIGNED.clear();
+/* ============================================================
+   WEEK NAVIGATION — any week, past or future, is one click away
+   ============================================================ */
+async function gotoWeek(iso){
+  const week=mondayOf(new Date(iso+"T00:00:00"));
+  EDITION = EDITIONS.find(e=>e.week_start===week) || {id:null,week_start:week};
+  FILTER="all"; SIGNED.clear();
   await loadCards(); renderChrome(); await render();
-});
-$("#newEdition").addEventListener("click",()=>{
-  const latest = EDITIONS[0]?.week_start || mondayOf(new Date());
-  const d=new Date(latest+"T00:00:00"); d.setDate(d.getDate()+7);
-  const week=mondayOf(d);
-  twoStep($("#newEdition"),`Start a rundown for ${prettyWeek(week)}?`,async()=>{
-    const ed=await STORE.addEdition(week);
-    EDITIONS=await STORE.editions();
-    EDITION=EDITIONS.find(x=>x.week_start===week)||ed;
-    LS("rundown.week",EDITION.week_start); SIGNED.clear();
-    await loadCards(); renderChrome(); await render();
-    const b=document.createElement("button");
-    b.className="btn sm plain"; b.id="newEdition"; b.title="Start the next week"; b.textContent="New week";
-    document.querySelector(".twostep")?.replaceWith(b);
-    b.addEventListener("click",()=>$("#newEdition").click());
-  },{yes:"Create it",busy:"Creating…",onError:e=>toast("Could not create that week: "+(e.message||e),"warn")});
-});
+}
+const shiftWeek=n=>{ const d=new Date(EDITION.week_start+"T00:00:00"); d.setDate(d.getDate()+7*n); return gotoWeek(mondayOf(d)); };
+$("#edPick").addEventListener("change",e=>gotoWeek(e.target.value));
+$("#wkPrev").addEventListener("click",()=>shiftWeek(-1));
+$("#wkNext").addEventListener("click",()=>shiftWeek(1));
+$("#wkNow").addEventListener("click",()=>gotoWeek(mondayOf(new Date())));
+$("#wkJump").addEventListener("change",e=>{ if(e.target.value) gotoWeek(e.target.value); });
 
 /* ============================================================
    RUNNING ORDER
    ============================================================ */
 function openOrder(){
-  if(!CARDS.length){ toast("Nothing to order yet."); return; }
+  if(CAMP==="all"){ toast("Pick a campaign first — the running order is set one campaign at a time."); return; }
+  if(!EDITION.id||!CARDS.length){ toast("Nothing to order yet."); return; }
   drawOrder();
   $("#orderSheet").classList.add("open");
   document.body.style.overflow="hidden";
@@ -1433,11 +1637,10 @@ function drawOrder(){
   $("#orderList").innerHTML = CARDS.map((c,i)=>`
     <li data-id="${c.id}">
       <span class="on">${String(i+1).padStart(2,"0")}</span>
-      <span class="oname">${esc(c.author)}</span>
-      <span class="role">${esc(c.role||"—")}</span>
+      <span class="oname">${esc(chanOf(c))}</span>
       <span class="grow"></span>
-      <button class="btn sm plain" data-up="${i}" ${i===0?"disabled":""} aria-label="Move ${esc(c.author)} earlier">&uarr;</button>
-      <button class="btn sm plain" data-down="${i}" ${i===CARDS.length-1?"disabled":""} aria-label="Move ${esc(c.author)} later">&darr;</button>
+      <button class="btn sm plain" data-up="${i}" ${i===0?"disabled":""} aria-label="Move ${esc(chanOf(c))} earlier">&uarr;</button>
+      <button class="btn sm plain" data-down="${i}" ${i===CARDS.length-1?"disabled":""} aria-label="Move ${esc(chanOf(c))} later">&darr;</button>
     </li>`).join("");
   $$("#orderList [data-up]").forEach(b=>b.onclick=()=>move(+b.dataset.up,-1));
   $$("#orderList [data-down]").forEach(b=>b.onclick=()=>move(+b.dataset.down,1));
@@ -1462,17 +1665,122 @@ $("#orderClose").addEventListener("click",closeOrder);
 $("#orderSheet").addEventListener("click",e=>{ if(e.target.id==="orderSheet") closeOrder(); });
 
 /* ============================================================
+   CAMPAIGNS + SHARING
+   ============================================================ */
+function openCamp(){
+  $("#campName").value=""; $("#campClient").value=""; $("#campMsg").textContent="";
+  $("#campSheet").classList.add("open"); document.body.style.overflow="hidden";
+  $("#campName").focus();
+}
+function closeCamp(){ $("#campSheet").classList.remove("open"); document.body.style.overflow=""; }
+$("#newCamp").addEventListener("click",openCamp);
+$("#campClose").addEventListener("click",closeCamp);
+$("#campSheet").addEventListener("click",e=>{ if(e.target.id==="campSheet") closeCamp(); });
+$("#campName").addEventListener("keydown",e=>{ if(e.key==="Enter") $("#campGo").click(); });
+$("#campGo").addEventListener("click",async()=>{
+  const name=$("#campName").value.trim();
+  if(!name){ $("#campMsg").innerHTML='<span class="err">Give the campaign a name.</span>'; return; }
+  $("#campGo").disabled=true; $("#campMsg").textContent="Creating…";
+  try{
+    const c=await STORE.addCampaign(name,$("#campClient").value.trim());
+    CAMPAIGNS=await STORE.campaigns();
+    CAMP=c.id; LS("rundown.camp",CAMP);
+    closeCamp();
+    await loadCards(); renderChrome(); await render();
+  }catch(e){ $("#campMsg").innerHTML=`<span class="err">${esc(e.message||String(e))}</span>`; }
+  finally{ $("#campGo").disabled=false; }
+});
+$("#campPick").addEventListener("change",async e=>{
+  CAMP=e.target.value; LS("rundown.camp",CAMP);
+  FILTER="all";
+  await loadCards(); renderChrome(); await render();
+});
+
+function shareBase(){ return location.origin+location.pathname; }
+function openShare(){
+  const c=campOf(CAMP); if(!c) return;
+  $("#shareTitle").textContent="Share "+c.name;
+  $("#lnkView").value=`${shareBase()}?c=${c.view_token}`;
+  $("#lnkComment").value=`${shareBase()}?c=${c.comment_token}`;
+  $("#shareNote").textContent = DEMO
+    ? "Demo mode: these links only work once the database is connected."
+    : "Each link opens this one campaign and nothing else. No sign-in for the client.";
+  const host=$("#shareActions");
+  host.innerHTML=`<span class="hint">Replace the links if one gets passed on, or close the campaign to your client.</span>
+    <span class="grow"></span>
+    <button class="btn sm plain quiet-danger" id="resetLinks">Replace links</button>
+    <button class="btn sm plain quiet-danger" id="archiveCamp">Close campaign</button>`;
+  $("#resetLinks").onclick=()=>twoStep($("#resetLinks"),
+    "Replace both links? Anyone using the old ones loses access.",
+    async()=>{ await STORE.updateCampaign(c.id,{view_token:makeToken(),comment_token:makeToken()});
+               CAMPAIGNS=await STORE.campaigns(); openShare(); toast("New links created."); },
+    {yes:"Replace",busy:"Replacing…",onError:e=>{ toast("Could not replace them: "+(e.message||e),"warn"); openShare(); }});
+  $("#archiveCamp").onclick=()=>twoStep($("#archiveCamp"),
+    `Close ${c.name}? It leaves this board and its client links stop working. Nothing is deleted.`,
+    async()=>{ await STORE.updateCampaign(c.id,{archived:true});
+               CAMPAIGNS=await STORE.campaigns(); CAMP="all"; LS("rundown.camp",CAMP);
+               closeShare(); await loadCards(); renderChrome(); await render();
+               toast("Campaign closed."); },
+    {yes:"Close it",busy:"Closing…",onError:e=>{ toast("Could not close it: "+(e.message||e),"warn"); openShare(); }});
+  $("#shareSheet").classList.add("open"); document.body.style.overflow="hidden";
+}
+function closeShare(){ $("#shareSheet").classList.remove("open"); document.body.style.overflow=""; }
+$("#shareBtn").addEventListener("click",openShare);
+$("#shareClose").addEventListener("click",closeShare);
+$("#shareSheet").addEventListener("click",e=>{ if(e.target.id==="shareSheet") closeShare(); });
+$$("[data-copy]").forEach(b=>b.addEventListener("click",async()=>{
+  const inp=document.getElementById(b.dataset.copy);
+  try{ await navigator.clipboard.writeText(inp.value); }
+  catch(e){ inp.select(); try{ document.execCommand("copy"); }catch(_){} }
+  const was=b.textContent; b.textContent="Copied"; setTimeout(()=>b.textContent=was,1400);
+}));
+
+/* ============================================================
    LIVE UPDATES
    ============================================================ */
+// Never redraw the board under someone who is mid-comment.
+function typing(){
+  const a=document.activeElement;
+  return !!(a && a.closest && a.closest(".cmtform") && (a.value||"").trim());
+}
+const anySheetOpen=()=>!!document.querySelector(".sheet.open");
+
 function subscribe(){
+  if(CLIENT){
+    // No login means no live channel; a quiet refresh does the same job.
+    $("#liveLamp").style.display="none";
+    setInterval(async()=>{
+      if(document.hidden||typing()||anySheetOpen()||document.body.classList.contains("present")) return;
+      try{
+        const keep=EDITION.week_start;
+        const eds=await Shared.editions();
+        if(eds.length){ EDITIONS=eds; EDITION=eds.find(e=>e.week_start===keep)||eds[0]; }
+        await loadCards(); renderChrome(); await render();
+      }catch(e){ /* try again next time */ }
+    },30000);
+    return;
+  }
   if(DEMO){ $("#liveLamp").className="live"; $("#liveLamp").querySelector("span").textContent="Demo · this browser"; return; }
+  const redraw=async()=>{
+    await loadCards();
+    if(document.body.classList.contains("present")){ drawSlide(); } else { await render(); }
+  };
   const ch = sb.channel("rundown")
     .on("postgres_changes",{event:"*",schema:"public",table:"cards"}, async payload=>{
       const row = payload.new || payload.old;
       if(row && row.edition_id && row.edition_id!==EDITION.id) return;
       if($("#sheet").classList.contains("open")) { flagIncoming(); return; }
-      await loadCards();
-      if(document.body.classList.contains("present")){ drawSlide(); } else { await render(); }
+      if(typing()) return;
+      await redraw();
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"card_comments"}, async()=>{
+      if(anySheetOpen()||typing()) return;
+      await redraw();
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"campaigns"}, async()=>{
+      CAMPAIGNS=await STORE.campaigns();
+      if(CAMP!=="all" && !campOf(CAMP)) CAMP="all";
+      renderChrome();
     })
     .on("postgres_changes",{event:"*",schema:"public",table:"editions"}, async()=>{
       EDITIONS=await STORE.editions(); renderChrome();
@@ -1498,17 +1806,25 @@ function flagIncoming(){
   try{
     const ready = await initStore();
     if(!ready) return;          // initStore has already said what is wrong
-    await load();
+    const ok = await load();
+    if(ok===false) return;      // load() has already said what is wrong
     subscribe();
-    $("#footStatus").textContent = DEMO
-      ? "Demo mode · nothing is shared · connect Supabase in CONFIG to go live"
-      : "Live · no sign-in · files stay until somebody deletes them on purpose";
+    if(CLIENT){
+      $("#footHow").innerHTML="<b>Shared by Taazaa.</b> This page shows one campaign and refreshes on its own.";
+      $("#footStatus").textContent = CAN_COMMENT ? "Comments on" : "View only";
+    }else{
+      $("#footStatus").textContent = DEMO
+        ? "Demo mode · nothing is shared · connect Supabase in CONFIG to go live"
+        : "Live · no sign-in · files stay until somebody deletes them on purpose";
+    }
   }catch(e){
     console.error(e);
     notice("warn","Could not load",
-      esc(e.message||String(e))+" — if this is the first run, check that <code>supabase-setup.sql</code> ran without errors.");
+      esc(e.message||String(e))+" — if this is the first run, check that <code>supabase-campaigns.sql</code> ran without errors.");
   }
 })();
 </script>
+</body>
+</html>
 </body>
 </html>
